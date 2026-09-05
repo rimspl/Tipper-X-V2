@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Tyre">
+  <defs>
+    <radialGradient id="tyreOuter" cx="50%" cy="50%" r="50%">
+      <stop offset="60%" stop-color="#1a1f28"/>
+      <stop offset="100%" stop-color="#0d1018"/>
+    </radialGradient>
+    <radialGradient id="tyreRim" cx="45%" cy="42%" r="36%">
+      <stop offset="0%" stop-color="#c0c8d4"/>
+      <stop offset="60%" stop-color="#8a95a6"/>
+      <stop offset="100%" stop-color="#6b7688"/>
+    </radialGradient>
+    <radialGradient id="tyreHub" cx="48%" cy="45%" r="18%">
+      <stop offset="0%" stop-color="#e0e6ee"/>
+      <stop offset="100%" stop-color="#9aa4b4"/>
+    </radialGradient>
+  </defs>
+  <!-- Outer tyre -->
+  <circle cx="60" cy="60" r="56" fill="url(#tyreOuter)" stroke="#0a0e14" stroke-width="2"/>
+  <!-- Tread lines -->
+  <circle cx="60" cy="60" r="52" fill="none" stroke="#2a3140" stroke-width="1.5"/>
+  <circle cx="60" cy="60" r="48" fill="none" stroke="#252c38" stroke-width="1"/>
+  <circle cx="60" cy="60" r="44" fill="none" stroke="#2a3140" stroke-width="0.8"/>
+  <!-- Tread grooves (radial) -->
+  <g stroke="#252c38" stroke-width="1.2" stroke-linecap="round">
+    <line x1="60" y1="4" x2="60" y2="18"/>
+    <line x1="99" y1="17" x2="90" y2="28"/>
+    <line x1="116" y1="60" x2="102" y2="60"/>
+    <line x1="99" y1="103" x2="90" y2="92"/>
+    <line x1="60" y1="116" x2="60" y2="102"/>
+    <line x1="21" y1="103" x2="30" y2="92"/>
+    <line x1="4" y1="60" x2="18" y2="60"/>
+    <line x1="21" y1="17" x2="30" y2="28"/>
+  </g>
+  <!-- Rim -->
+  <circle cx="60" cy="60" r="30" fill="url(#tyreRim)" stroke="#5c6778" stroke-width="1.5"/>
+  <!-- Rim spokes -->
+  <g stroke="#6b7688" stroke-width="2.5" stroke-linecap="round" opacity="0.7">
+    <line x1="60" y1="34" x2="60" y2="44"/>
+    <line x1="84" y1="48" x2="76" y2="54"/>
+    <line x1="84" y1="72" x2="76" y2="66"/>
+    <line x1="60" y1="86" x2="60" y2="76"/>
+    <line x1="36" y1="72" x2="44" y2="66"/>
+    <line x1="36" y1="48" x2="44" y2="54"/>
+  </g>
+  <!-- Hub cap -->
+  <circle cx="60" cy="60" r="14" fill="url(#tyreHub)" stroke="#7c879a" stroke-width="1"/>
+  <!-- Hub center bolt -->
+  <circle cx="60" cy="60" r="5" fill="#b0b8c8" stroke="#8a94a6" stroke-width="0.8"/>
+  <!-- Hub highlight -->
+  <circle cx="56" cy="56" r="3" fill="rgba(255,255,255,0.25)"/>
+</svg>

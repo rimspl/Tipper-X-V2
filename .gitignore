@@ -1,0 +1,19 @@
+.vercel
+.env
+.env.local
+node_modules/
+*.exe
+exe1/
+exe2/
+dist/
+build/
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+GRN data given by Chaudhary/
+BASE FILE_*
+upload-*.xlsx
+upload-*.json
+*.bak
+.hosts.bak*

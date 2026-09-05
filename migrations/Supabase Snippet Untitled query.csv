@@ -1,0 +1,13 @@
+column_name
+id
+user_id
+site_id
+customer_id
+license_id
+username
+full_name
+email
+role
+user_type
+is_active
+created_at

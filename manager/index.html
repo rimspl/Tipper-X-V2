@@ -1,0 +1,871 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manager Control Room | DynaHaul X</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./src/styles/dashboard.css">
+  <link rel="stylesheet" href="./src/styles/onboarding.css">
+  <link rel="stylesheet" href="./src/styles/dashboard-mobile.css" media="screen and (max-width: 768px)">
+  <link rel="stylesheet" href="./src/styles/dashboard-mobile.css" media="print">
+  <script>
+    (function enforceManagerAccessEarly() {
+      function resolveUserType(session) {
+        const explicit = String(session?.userType || '').trim().toLowerCase();
+        if (explicit === 'manager' || explicit === 'fitter') {
+          return explicit;
+        }
+
+        const legacyRole = String(session?.role || '').trim().toLowerCase();
+        return legacyRole === 'manager' ? 'manager' : 'fitter';
+      }
+
+      const raw = (() => { let r = sessionStorage.getItem('rims_session'); return r; })();
+      if (!raw) {
+        window.location.replace('../fitter/login.html');
+        return;
+      }
+
+      try {
+        const session = JSON.parse(raw);
+        const isManager = resolveUserType(session) === 'manager';
+        if (!session?.uid || !isManager) {
+          window.location.replace('../fitter/index.html');
+        }
+      } catch (error) {
+        sessionStorage.removeItem('rims_session');
+        localStorage.removeItem('rims_session');
+        window.location.replace('../fitter/login.html');
+      }
+    })();
+  </script>
+</head>
+<body>
+
+  <!-- Onboarding Container (hidden by default, shown when no data) -->
+  <div id="onboardingContainer" style="display:none"></div>
+
+  <!-- Loading Overlay -->
+  <div id="loadingOverlay" class="loading-overlay">
+    <div class="loading-inner">
+      <div class="loading-spinner"></div>
+      <p class="loading-title">DynaHaul X</p>
+      <p class="loading-hint">Loading operational data…</p>
+      <div class="loading-skeleton">
+        <div class="skeleton-bar h40"></div>
+        <div class="skeleton-bar w80"></div>
+        <div class="skeleton-bar w60"></div>
+        <div class="skeleton-bar w40"></div>
+      </div>
+    </div>
+  </div>
+
+  <header class="manager-header">
+    <div class="brand-row">
+      <div>
+        <p class="eyebrow">Manager Operations Workspace</p>
+        <h1>DynaHaul X — Tipper Division</h1>
+      </div>
+      <div class="user-row">
+        <span id="userLabel" class="chip">Manager</span>
+        <button id="fuelUploadTopBtn" type="button" class="chip-link chip-button">Fuel Upload (Optional)</button>
+        <a id="siteSettingsTopLink" class="chip-link" href="site-settings.html">Site Settings</a>
+        <a id="userAccessTopLink" class="chip-link" href="user-management.html">User Access</a>
+        <a id="logoutBtn" class="chip-link" href="../fitter/login.html">Logout</a>
+      </div>
+    </div>
+
+    <div class="kpi-grid" id="kpiGrid">
+      <div class="kpi-card" style="--kpi-accent: var(--ok)">
+        <span class="kpi-label">Target Tyre Life</span>
+        <strong id="targetTyreLife" class="kpi-value">0</strong>
+      </div>
+      <div class="kpi-card" style="--kpi-accent: var(--info)">
+        <span class="kpi-label">Target Fuel Efficiency</span>
+        <strong id="targetFuel" class="kpi-value">0</strong>
+      </div>
+      <div class="kpi-card" style="--kpi-accent: var(--ok)">
+        <span class="kpi-label">Target Annual Savings</span>
+        <strong id="targetSavings" class="kpi-value">0</strong>
+      </div>
+      <div id="pressureLeakageCard" class="kpi-card kpi-card-link" role="button" tabindex="0" aria-label="Open pressure leakage breakdown" style="--kpi-accent: var(--warn)">
+        <span class="kpi-label">Pressure Leakage Loss</span>
+        <strong id="pressureLeakage" class="kpi-value">0</strong>
+      </div>
+    </div>
+  </header>
+
+  <main class="manager-shell">
+    <nav class="tab-nav" id="tabNav">
+      <button data-tab="tyres" class="tab-btn active">Tyre Records <span class="tab-badge" id="tabBadgeTyres">0</span></button>
+      <button data-tab="inspection" class="tab-btn">Inspection Records <span class="tab-badge" id="tabBadgeInspection">0</span></button>
+      <button data-tab="analytics" class="tab-btn">Analytics <span class="tab-badge" id="tabBadgeAnalytics">—</span></button>
+      <button data-tab="savings" class="tab-btn">Savings Achieved <span class="tab-badge" id="tabBadgeSavings">₹</span></button>
+    </nav>
+
+    <section id="tab-tyres" class="tab-panel active">
+      <div class="panel-head">
+        <div class="panel-head-copy">
+          <h2>Tyre Records</h2>
+          <p id="tyreRecordCount" class="hint">Total Tyres Recorded: 0</p>
+        </div>
+        <div class="toolbar">
+          <button id="exportTyreXls" class="btn btn-secondary">Export Excel</button>
+          <button type="button" class="filter-toggle-btn" data-target="tyreFilters">⚙ Filters <span class="badge" id="tyreFilterBadge" style="display:none">0</span></button>
+        </div>
+      </div>
+      <div class="filters-collapsible" id="tyreFilters">
+        <div class="filters">
+          <input id="tyreNumberFilter" type="text" placeholder="Quick Search Tyre Number">
+          <select id="tyreBrandFilter">
+            <option value="">All Brands</option>
+          </select>
+          <input id="tyreTruckFilter" type="text" placeholder="Truck Number">
+          <select id="tyreStatusFilter">
+            <option value="">All Status</option>
+            <option value="Running">Running</option>
+            <option value="Spare">Spare</option>
+            <option value="Repair">Repair</option>
+            <option value="Scrap">Scrap</option>
+            <option value="Claim">Claim</option>
+            <option value="Retread">Retread</option>
+          </select>
+          <input id="tyreDateFrom" type="date">
+          <input id="tyreDateTo" type="date">
+          <button id="tyreApplyFilter" class="btn">Apply</button>
+        </div>
+      </div>
+      <div class="table-wrap table-wrap-tyres">
+        <table>
+          <thead>
+            <tr>
+              <th>Tyre Number</th>
+              <th>Brand</th>
+              <th>Size</th>
+              <th>Truck Number</th>
+              <th>Position</th>
+              <th>Status</th>
+              <th>Last Inspection</th>
+              <th>RTD1</th>
+              <th>RTD2</th>
+              <th>Odometer</th>
+              <th>Tyre Life</th>
+              <th>First Fitment</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tyreTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="tab-inspection" class="tab-panel">
+      <div class="panel-head">
+        <div class="panel-head-copy">
+          <h2>Inspection Records</h2>
+          <p id="inspectionResultMeta" class="hint">Latest record per tyre</p>
+        </div>
+        <div class="toolbar">
+          <button type="button" class="filter-toggle-btn" data-target="inspectionFilters">⚙ Filters</button>
+          <button id="exportInspectionBtn" class="btn btn-secondary">Export CSV</button>
+        </div>
+      </div>
+      <div class="filters-collapsible" id="inspectionFilters">
+        <div class="filters">
+          <input id="inspectionFrom" type="date">
+          <input id="inspectionTo" type="date">
+          <input id="inspectionTruck" type="text" placeholder="Truck">
+          <input id="inspectionTyre" type="text" placeholder="Tyre Number">
+          <input id="inspectionBrand" type="text" placeholder="Brand">
+          <select id="inspectionType">
+            <option value="">All Activities</option>
+            <option value="PRESSURE_CHECK">Pressure Check</option>
+            <option value="INSPECTION">Inspection</option>
+            <option value="FITMENT">Fitment</option>
+            <option value="REMOVAL">Removal</option>
+          </select>
+          <button id="inspectionApplyFilter" class="btn">Apply</button>
+        </div>
+      </div>
+      <div class="table-footer table-footer-top">
+        <p id="inspectionPageMeta" class="hint">Showing 0 of 0 tyres</p>
+        <div class="table-pager">
+          <label class="pager-label" for="inspectionPageSize">Rows</label>
+          <select id="inspectionPageSize" class="pager-select">
+            <option value="25">25</option>
+            <option value="50" selected>50</option>
+            <option value="100">100</option>
+          </select>
+          <button id="inspectionPrevPage" type="button" class="btn btn-secondary">Prev</button>
+          <span id="inspectionPageInfo" class="hint">Page 1 / 1</span>
+          <button id="inspectionNextPage" type="button" class="btn btn-secondary">Next</button>
+        </div>
+      </div>
+      <div class="table-wrap table-wrap-inspection">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Activity</th>
+              <th>Truck</th>
+              <th>Tyre Number</th>
+              <th>Brand</th>
+              <th>Position</th>
+              <th>Odometer</th>
+              <th>RTD1</th>
+              <th>RTD2</th>
+              <th>PSI Found</th>
+              <th>PSI Corrected</th>
+              <th>Remarks</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="inspectionTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="tab-analytics" class="tab-panel">
+      <div class="panel-head">
+        <h2>Analytics</h2>
+      </div>
+
+      <!-- Graph Search Filter -->
+      <div class="ob-search-wrap" id="analyticsSearchWrap">
+        <div class="ob-search-bar">
+          <svg class="ob-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#daa520" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input type="text" id="analyticsSearchInput" class="ob-search-input"
+            placeholder="Search reports... (e.g., pressure, brand, savings)" autocomplete="off">
+          <button class="ob-search-clear" id="analyticsSearchClear" style="display:none" aria-label="Clear search">✕</button>
+        </div>
+        <div class="ob-search-dropdown" id="analyticsSearchDropdown" style="display:none"></div>
+      </div>
+
+<article class="analytics-block accent-ok" data-report="fleetHealth">
+        <div class="analytics-head">
+          <div>
+            <h3>Fleet Health Score</h3>
+            <p class="analytics-note">Composite 0-100 health score for your entire fleet.</p>
+          </div>
+        </div>
+        <div id="fleetHealthScore" class="health-score-row">
+          <div class="health-gauge-wrap">
+            <div id="fleetHealthGauge" class="health-gauge">
+              <div class="health-gauge-inner">
+                <div>
+                  <div class="health-score-value">—</div>
+                  <div class="health-score-label">Loading</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="fleetHealthBreakdown" class="health-breakdown"></div>
+        </div>
+      </article>
+
+<article class="analytics-block accent-ok">
+        <div class="analytics-head">
+          <div>
+            <h3>Date Range Filter</h3>
+            <p class="analytics-note">Filter all analytics below by date range.</p>
+          </div>
+        </div>
+        <div class="date-range-bar">
+          <label for="analyticsDateRangePreset">Preset:</label>
+          <select id="analyticsDateRangePreset">
+            <option value="all">All Time</option>
+            <option value="30d">Last 30 Days</option>
+            <option value="90d">Last 90 Days</option>
+            <option value="6m">Last 6 Months</option>
+            <option value="1y">Last 1 Year</option>
+            <option value="custom">Custom Range</option>
+          </select>
+          <label for="analyticsDateFrom">From:</label>
+          <input id="analyticsDateFrom" type="date" disabled>
+          <label for="analyticsDateTo">To:</label>
+          <input id="analyticsDateTo" type="date" disabled>
+          <button id="analyticsApplyRange" type="button" class="btn">Apply</button>
+        </div>
+      </article>
+
+<article class="analytics-block accent-ok" data-report="tyreLifeCharts">
+          <div class="analytics-head">
+            <div>
+              <h3>Tyre Life Overview — Charts</h3>
+              <p class="analytics-note">Monthly scrap behaviour, active tyre health, and projected replacement months.</p>
+            </div>
+            <div class="analytics-window-control-wrap">
+              <label class="analytics-window-control" for="analyticsWindowMonths">
+                <span>Show</span>
+                <select id="analyticsWindowMonths">
+                  <option value="12" selected>Last 12 months</option>
+                  <option value="24">Last 24 months</option>
+                </select>
+              </label>
+            </div>
+          </div>
+          <div class="chart-grid">
+            <article class="chart-card wide">
+              <div class="analytics-card-head">
+                <div>
+                  <h3>Scrap Life</h3>
+                  <p class="chart-note">Grouped by month of removal with above-target vs below-target outcome split.</p>
+                </div>
+              </div>
+              <canvas id="chartTyreLifeScrap"></canvas>
+            </article>
+            <article class="chart-card wide">
+              <div class="analytics-card-head">
+                <div>
+                  <h3>Running Tyres with Current Status</h3>
+                  <p class="chart-note">Target-life brackets split into good wear rate and fast wear rate using current RTD vs expected wear pace.</p>
+                </div>
+              </div>
+              <canvas id="chartTyreLifeRunning"></canvas>
+            </article>
+            <article class="chart-card wide">
+              <div class="analytics-card-head">
+                <div>
+                  <h3>Tyre Requirement Forecast</h3>
+                  <p class="chart-note">Projected number of tyres expected to reach target life in upcoming months based on current life achieved and site daily KM.</p>
+                </div>
+              </div>
+              <canvas id="chartTyreLifeForecast"></canvas>
+            </article>
+          </div>
+        </article>
+
+<article class="analytics-block accent-ok" data-report="tyreLife">
+          <div class="analytics-head">
+            <div>
+              <h3>Target vs Actual Tyre Life</h3>
+              <p class="analytics-note">Shows tyre life performance for all tyres.</p>
+            </div>
+            <button id="exportAnalyticsLifeXls" class="btn btn-secondary">Export Excel</button>
+          </div>
+          <div class="table-wrap table-wrap-analytics"><table><thead><tr>
+            <th>Tyre No</th>
+            <th>Brand</th>
+            <th>Truck</th>
+            <th>Fitment Date</th>
+            <th>Removal Date</th>
+            <th>Target Life</th>
+            <th>Actual Life</th>
+            <th>Variance</th>
+            <th>Tyre Status</th>
+            <th>Performance Status</th>
+            <th>Tyre Cost</th>
+            <th>CPK</th>
+          </tr></thead><tbody id="analyticsLifeTableBody"></tbody></table></div>
+          <div class="table-footer">
+            <p id="analyticsLifeMeta" class="hint">Showing 0 of 0 tyres</p>
+            <div class="table-pager">
+              <label class="pager-label" for="analyticsLifePageSize">Per page</label>
+              <select id="analyticsLifePageSize" class="pager-select">
+                <option value="25">25</option>
+                <option value="50" selected>50</option>
+                <option value="100">100</option>
+              </select>
+              <button id="analyticsLifePrev" type="button" class="btn btn-secondary">Prev</button>
+              <span id="analyticsLifePageInfo" class="hint">Page 1 / 1</span>
+              <button id="analyticsLifeNext" type="button" class="btn btn-secondary">Next</button>
+            </div>
+          </div>
+        </article>
+
+<article class="analytics-block accent-warn" data-report="rubberCharts">
+          <div class="analytics-head">
+            <div>
+              <h3>Rubber Utilization — Charts</h3>
+              <p class="analytics-note">Graphs compare scrap-time utilization with the wear potential of currently running tyres.</p>
+            </div>
+          </div>
+          <div class="chart-grid">
+            <article class="chart-card wide">
+              <div class="analytics-card-head">
+                <div>
+                  <h3>Scrap Tyre Utilization and Potential Loss</h3>
+                  <p class="chart-note">Monthly 100% stacked view of average rubber used vs average rubber wasted.</p>
+                </div>
+              </div>
+              <canvas id="chartRubberMonthly"></canvas>
+            </article>
+            <article class="chart-card wide">
+              <div class="analytics-card-head">
+                <div>
+                  <h3>Current Status and Current Potential</h3>
+                  <p class="chart-note">Scatter view of running tyres with a benchmark line from the best-performing wear-rate cluster. Green means at or better than threshold; red means above-threshold consumption.</p>
+                </div>
+              </div>
+              <canvas id="chartRubberPotential"></canvas>
+            </article>
+          </div>
+        </article>
+
+<article class="analytics-block accent-warn" data-report="rubberUtil">
+          <div class="analytics-head">
+            <div>
+              <h3>Rubber Utilisation Analysis</h3>
+              <p class="analytics-note">Shows rubber usage and remaining rubber at removal for each tyre.</p>
+            </div>
+            <button id="exportAnalyticsRubberXls" class="btn btn-secondary">Export Excel</button>
+          </div>
+          <div class="table-wrap table-wrap-analytics"><table><thead><tr>
+            <th>Tyre No</th>
+            <th>Brand</th>
+            <th>Truck</th>
+            <th>Tyre Life</th>
+            <th>Original RTD</th>
+            <th>Removal RTD</th>
+            <th>Rubber Used %</th>
+            <th>Rubber Wasted %</th>
+            <th>Tyre Cost</th>
+            <th>Value Lost</th>
+          </tr></thead><tbody id="analyticsRubberTableBody"></tbody></table></div>
+          <div class="table-footer">
+            <p id="analyticsRubberMeta" class="hint">Showing 0 of 0 tyres</p>
+            <div class="table-pager">
+              <label class="pager-label" for="analyticsRubberPageSize">Per page</label>
+              <select id="analyticsRubberPageSize" class="pager-select">
+                <option value="25">25</option>
+                <option value="50" selected>50</option>
+                <option value="100">100</option>
+              </select>
+              <button id="analyticsRubberPrev" type="button" class="btn btn-secondary">Prev</button>
+              <span id="analyticsRubberPageInfo" class="hint">Page 1 / 1</span>
+              <button id="analyticsRubberNext" type="button" class="btn btn-secondary">Next</button>
+            </div>
+          </div>
+        </article>
+
+<article class="analytics-block accent-info" data-report="brandCharts">
+          <div class="analytics-head">
+            <div>
+              <h3>Brand-wise Analysis — Charts</h3>
+              <p class="analytics-note">Compare scrapped-brand lifespan against target life and active-brand health distribution.</p>
+            </div>
+          </div>
+          <div class="chart-grid">
+            <article class="chart-card wide">
+              <div class="analytics-card-head">
+                <div>
+                  <h3>Scrap (Brand-wise)</h3>
+                  <p class="chart-note">Scrap life achieved by brand with target life overlay.</p>
+                </div>
+              </div>
+              <div id="brandScrapSummary" class="chart-summary-block"></div>
+              <canvas id="chartBrandScrap"></canvas>
+            </article>
+            <article class="chart-card wide">
+              <div class="analytics-card-head">
+                <div>
+                  <h3>Running (Brand-wise)</h3>
+                  <p class="chart-note">Percentage of active tyres on-track for target life vs projecting to fail early.</p>
+                </div>
+              </div>
+              <canvas id="chartBrandRunning"></canvas>
+            </article>
+          </div>
+        </article>
+
+<article class="analytics-block accent-info" data-report="brandWise">
+          <div class="analytics-head">
+            <div>
+              <h3>Brand-wise Performance Summary</h3>
+              <p class="analytics-note">Shows average life per brand, target life, achievement % and cost metrics.</p>
+            </div>
+            <button id="exportAnalyticsBrandXls" class="btn btn-secondary">Export Excel</button>
+          </div>
+          <div class="table-wrap table-wrap-analytics"><table><thead><tr>
+            <th>Brand</th>
+            <th>Year</th>
+            <th>No. of Tyres</th>
+            <th>Avg Life Achieved</th>
+            <th>Target Life</th>
+            <th>Achievement %</th>
+            <th>Avg Tyre Cost</th>
+            <th>CPK</th>
+          </tr></thead><tbody id="analyticsBrandTableBody"></tbody></table></div>
+        </article>
+
+<article class="analytics-block accent-danger" data-report="pressureCharts">
+          <div class="analytics-head">
+            <div>
+              <h3>Reduced Pressure Losses — Charts</h3>
+              <p class="analytics-note">Pressure graphs pair operational counts with PSI-drop trends and financial impact.</p>
+            </div>
+          </div>
+          <div class="chart-grid">
+            <article class="chart-card wide">
+              <div class="analytics-card-head">
+                <div>
+                  <h3>Incidental Rate of Loss</h3>
+                  <p class="chart-note">Monthly relationship between unique tyres checked, unique under-inflated tyres, average PSI drop, and financial loss.</p>
+                </div>
+              </div>
+              <canvas id="chartPressureIncident"></canvas>
+            </article>
+            <article class="chart-card wide">
+              <div class="analytics-card-head">
+                <div>
+                  <h3>Range Based on Wear of Tyre</h3>
+                  <p class="chart-note">Average PSI drop per day grouped by wear brackets to highlight ageing tyres needing attention.</p>
+                </div>
+              </div>
+              <canvas id="chartPressureWear"></canvas>
+            </article>
+          </div>
+        </article>
+
+<article class="analytics-block accent-danger" data-report="pressureLeakage">
+          <div class="analytics-head">
+            <div>
+              <h3>Pressure Leakage Impact</h3>
+              <p class="analytics-note">Pressure readings and calculated loss impact in table format.</p>
+            </div>
+            <div class="analytics-head-actions">
+              <div class="segmented-toggle" role="group" aria-label="Pressure view mode">
+                <button id="analyticsPressureModeSummary" type="button" class="btn btn-secondary btn-segment active">Tyre Summary</button>
+                <button id="analyticsPressureModeDaily" type="button" class="btn btn-secondary btn-segment">Daily Readings</button>
+              </div>
+              <button id="exportAnalyticsPressureDailyXls" class="btn btn-secondary">Export Excel</button>
+            </div>
+          </div>
+          <div id="pressureKpiRow" class="pressure-kpi-row"></div>
+          <div class="table-wrap table-wrap-analytics"><table>
+            <thead id="analyticsPressureTableHead"></thead>
+            <tbody id="analyticsPressureTableBody"></tbody>
+          </table></div>
+          <div class="table-footer">
+            <p id="analyticsPressureMeta" class="hint">Showing 0 of 0 rows</p>
+            <div class="table-pager">
+              <label class="pager-label" for="analyticsPressurePageSize">Per page</label>
+              <select id="analyticsPressurePageSize" class="pager-select">
+                <option value="25">25</option>
+                <option value="50" selected>50</option>
+                <option value="100">100</option>
+              </select>
+              <button id="analyticsPressurePrev" type="button" class="btn btn-secondary">Prev</button>
+              <span id="analyticsPressurePageInfo" class="hint">Page 1 / 1</span>
+              <button id="analyticsPressureNext" type="button" class="btn btn-secondary">Next</button>
+            </div>
+          </div>
+        </article>
+
+<article class="analytics-block accent-info" data-report="ageDist">
+          <div class="analytics-head">
+            <div>
+              <h3>Tyre Age Distribution</h3>
+              <p class="analytics-note">Fleet age breakdown by months since first fitment.</p>
+            </div>
+          </div>
+          <div class="table-wrap table-wrap-analytics"><table><thead><tr>
+            <th>Age Range</th>
+            <th>Count</th>
+            <th>Distribution</th>
+          </tr></thead><tbody id="ageDistBody"></tbody></table></div>
+        </article>
+
+<article class="analytics-block accent-warn" data-report="defectTrend">
+          <div class="analytics-head">
+            <div>
+              <h3>Defect Trend by Position (90-Day)</h3>
+              <p class="analytics-note">Positions with the highest defect rates in the last 90 days.</p>
+            </div>
+          </div>
+          <div class="table-wrap table-wrap-analytics"><table><thead><tr>
+            <th>Truck</th>
+            <th>Position</th>
+            <th>Defects</th>
+            <th>Total Events</th>
+            <th>Defect %</th>
+          </tr></thead><tbody id="defectTrendBody"></tbody></table></div>
+        </article>
+
+<article class="analytics-block accent-danger" data-report="removalReasons">
+          <div class="analytics-head">
+            <div>
+              <h3>Removal Reasons</h3>
+              <p class="analytics-note">Breakdown of recorded tyre removal reasons.</p>
+            </div>
+          </div>
+          <div class="table-wrap table-wrap-analytics"><table><thead><tr>
+            <th>Reason</th>
+            <th>Count</th>
+            <th>% Share</th>
+          </tr></thead><tbody id="removalReasonsBody"></tbody></table></div>
+        </article>
+
+        <article class="analytics-block accent-danger" data-report="pressureFuelCost" id="blockPressureFuelCost">
+          <div class="analytics-head">
+            <div>
+              <h3>Pressure vs Fuel Cost</h3>
+              <p class="analytics-note">Monthly comparison of target fuel cost vs actual fuel cost.</p>
+            </div>
+          </div>
+          <div class="chart-container" style="position:relative;height:300px;width:100%">
+            <canvas id="pressureFuelCostChart"></canvas>
+          </div>
+        </article>
+
+        <article class="analytics-block accent-info" data-report="pressureHeatmap" id="blockPressureHeatmap">
+          <div class="analytics-head">
+            <div>
+              <h3>Pressure Heatmap</h3>
+              <p class="analytics-note">Current tyre pressure status — green (ok), yellow (warning), red (critical).</p>
+            </div>
+          </div>
+          <div id="pressureHeatmapGrid" class="pressure-heatmap-grid"></div>
+        </article>
+
+        <article class="analytics-block accent-danger" data-report="rtdScrapping" id="blockRtdScrapping">
+          <div class="analytics-head">
+            <div>
+              <h3>RTD Scrapping Recommendation</h3>
+              <p class="analytics-note">Tyres with tread depth ≤ 1.5mm flagged for scrapping.</p>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table" id="rtdScrappingTable">
+              <thead>
+                <tr>
+                  <th>Tyre No</th>
+                  <th>Position</th>
+                  <th>Tread Depth (mm)</th>
+                  <th>Inspection Date</th>
+                </tr>
+              </thead>
+              <tbody id="rtdScrappingBody"></tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="analytics-block accent-ok" data-report="retreadEligible" id="blockRetreadEligible">
+          <div class="analytics-head">
+            <div>
+              <h3>Retread Eligibility</h3>
+              <p class="analytics-note">Tyres eligible for retreading (tread 3-6mm, retreads &lt; 3).</p>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table" id="retreadEligibleTable">
+              <thead>
+                <tr>
+                  <th>Tyre No</th>
+                  <th>Position</th>
+                  <th>Tread Depth (mm)</th>
+                  <th>Retread Count</th>
+                  <th>Inspection Date</th>
+                </tr>
+              </thead>
+              <tbody id="retreadEligibleBody"></tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="analytics-block accent-warn" data-report="brandCostPerKm" id="blockBrandCostPerKm">
+          <div class="analytics-head">
+            <div>
+              <h3>Brand-wise Cost per KM</h3>
+              <p class="analytics-note">Cost efficiency comparison across tyre brands.</p>
+            </div>
+          </div>
+          <div class="chart-container" style="position:relative;height:300px;width:100%">
+            <canvas id="brandCostPerKmChart"></canvas>
+          </div>
+          <div class="table-responsive" style="margin-top:16px">
+            <table class="data-table" id="brandCostPerKmTable">
+              <thead>
+                <tr>
+                  <th>Brand</th>
+                  <th>Tyres</th>
+                  <th>Total KM</th>
+                  <th>Total Cost (₹)</th>
+                  <th>₹/KM</th>
+                </tr>
+              </thead>
+              <tbody id="brandCostPerKmBody"></tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="analytics-block accent-ok" data-report="tyrePnL" id="blockTyrePnL">
+          <div class="analytics-head">
+            <div>
+              <h3>P&amp;L per Tyre</h3>
+              <p class="analytics-note">Profit &amp; loss per tyre based on rate/km × km run minus costs.</p>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table" id="tyrePnLTable">
+              <thead>
+                <tr>
+                  <th>Tyre No</th>
+                  <th>Make</th>
+                  <th>Total KM</th>
+                  <th>Revenue (₹)</th>
+                  <th>Cost (₹)</th>
+                  <th>P&amp;L (₹)</th>
+                </tr>
+              </thead>
+              <tbody id="tyrePnLBody"></tbody>
+            </table>
+          </div>
+        </article>
+
+    </section>
+
+    <section id="tab-savings" class="tab-panel">
+      <div class="panel-head">
+        <h2>Savings Achieved</h2>
+        <button id="exportSavingsXls" class="btn btn-secondary">Export Excel</button>
+      </div>
+
+      <!-- Hero Impact Card -->
+      <div id="savingsHero" class="savings-hero">
+        <span class="savings-hero-label">Total Operational Cost Impact</span>
+        <strong id="savingsHeroValue" class="savings-hero-value">₹0</strong>
+        <span id="savingsHeroSub" class="savings-hero-sub">Since system onboarding</span>
+      </div>
+
+      <!-- Impact Tiles -->
+      <div id="savingsGrid" class="savings-grid"></div>
+
+      <!-- Detailed Breakdown Table -->
+      <p class="savings-detail-label">Detailed Breakdown</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Target</th>
+              <th>Current</th>
+              <th>Variance</th>
+              <th>Financial Impact Since Start</th>
+            </tr>
+          </thead>
+          <tbody id="savingsBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <div id="pressureLossModal" class="evidence-modal hidden" role="dialog" aria-modal="true" aria-labelledby="pressureLossTitle">
+    <div class="evidence-modal-card">
+      <div class="evidence-modal-head">
+        <h3 id="pressureLossTitle">Pressure Leakage Cumulative Loss by Tyre</h3>
+        <button id="pressureLossClose" type="button" class="btn btn-secondary">Close</button>
+      </div>
+      <p class="hint">This view shows cumulative pressure leakage loss only, grouped by tyre.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Tyre No</th>
+              <th>Cumulative Pressure Loss</th>
+            </tr>
+          </thead>
+          <tbody id="pressureLossBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="fuelUploadModal" class="evidence-modal hidden" role="dialog" aria-modal="true" aria-labelledby="fuelUploadTitle">
+    <div class="evidence-modal-card fuel-upload-card">
+      <div class="evidence-modal-head">
+        <h3 id="fuelUploadTitle">Fuel & Trips Upload</h3>
+        <button id="fuelUploadClose" type="button" class="btn btn-secondary">Close</button>
+      </div>
+      <p class="hint">Optional tab for customer. Upload when data is available; analytics/savings auto-refresh from these rows.</p>
+      <div class="upload-meta-row">
+        <label class="file-pick">
+          <span>Bulk Upload (CSV / Excel)</span>
+          <input id="fuelFileUpload" type="file" accept=".xlsx,.xls,.csv" />
+        </label>
+      </div>
+      <form id="fuelForm" class="fuel-form">
+        <input id="fuelTruck" required type="text" placeholder="Truck No">
+        <input id="fuelDate" required type="date">
+        <input id="fuelTrips" required type="number" min="0" step="1" placeholder="Total Trips">
+        <input id="fuelKms" required type="number" min="0" step="0.1" placeholder="Total KMs">
+        <input id="fuelConsumed" required type="number" min="0" step="0.1" placeholder="Fuel Consumed">
+        <input id="fuelProduction" required type="number" min="0" step="0.1" placeholder="Production">
+        <button type="submit" class="btn">Add Monthly Row</button>
+      </form>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Truck</th>
+              <th>Date</th>
+              <th>Trips</th>
+              <th>KMs</th>
+              <th>Fuel</th>
+              <th>Production</th>
+              <th>Fuel / Trip</th>
+              <th>Fuel / KM</th>
+            </tr>
+          </thead>
+          <tbody id="fuelTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="evidenceModal" class="evidence-modal hidden" role="dialog" aria-modal="true" aria-labelledby="evidenceModalTitle">
+    <div class="evidence-modal-card">
+      <div class="evidence-modal-head">
+        <h3 id="evidenceModalTitle">Voice Evidence</h3>
+        <button id="evidenceModalClose" type="button" class="btn btn-secondary">Close</button>
+      </div>
+      <p id="evidenceModalSub" class="hint">Loading evidence...</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Field</th>
+              <th>Step</th>
+              <th>Type</th>
+              <th>Captured At</th>
+              <th>Voice Note</th>
+              <th>Transcript</th>
+              <th>Bucket Path</th>
+            </tr>
+          </thead>
+          <tbody id="evidenceTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastHost" class="toast-host" aria-live="polite"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="../supabase-init.js"></script>
+  <script>
+    // Early exit for onboarding preview — hide dashboard chrome before modules load
+    (function() {
+      var p = new URLSearchParams(window.location.search);
+      if (p.get('preview') === 'onboarding') {
+        var h = document.querySelector('.manager-header');
+        var s = document.querySelector('.manager-shell');
+        var o = document.getElementById('loadingOverlay');
+        if (h) h.style.display = 'none';
+        if (s) s.style.display = 'none';
+        if (o) { o.style.transition = 'none'; o.style.display = 'none'; }
+      }
+    })();
+  </script>
+  <script type="module" src="./src/pages/dashboard.js"></script>
+  <script type="module" src="./src/pages/onboarding.js"></script>
+</body>
+</html>

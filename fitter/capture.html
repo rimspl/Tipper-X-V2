@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0d314b">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Guided Voice Input | DynaHaul X</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="./src/styles/app.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="hero compact">
+      <div>
+        <p class="eyebrow">Voice Wizard</p>
+        <h1 id="captureTitle">Voice Input</h1>
+        <p id="captureSubtitle" class="subline">Guided voice input is loading...</p>
+      </div>
+      <div class="hero-actions">
+        <a class="ghost-btn" href="./index.html">Home</a>
+      </div>
+      <div class="status-row">
+        <span id="networkBadge" class="chip">Checking network</span>
+        <span id="contextBadge" class="chip chip-muted">Context pending</span>
+      </div>
+      <div class="sync-row">
+        <span id="stepHint" class="sync-hint">0/0 mandatory steps captured.</span>
+      </div>
+    </header>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Assigned Context</h2>
+        <span class="hint">Used for manager-level structured mapping</span>
+      </div>
+      <div class="context-grid">
+        <article>
+          <label>Vehicle</label>
+          <p id="ctxVehicle">Not set</p>
+        </article>
+        <article>
+          <label>Position</label>
+          <p id="ctxPosition">Not set</p>
+        </article>
+        <article>
+          <label>Shift</label>
+          <p id="ctxShift">Not set</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Guided Steps</h2>
+        <span class="hint">Record each mandatory voice step for complete extraction</span>
+      </div>
+      <div id="stepList" class="step-list"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Background Fields (Last Synced)</h2>
+        <span class="hint">Auto-filled from pipeline and previous approved records</span>
+      </div>
+      <ul id="fieldList" class="field-list"></ul>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Save</h2>
+        <span class="hint">Use Save + Sync when online, else Save Offline</span>
+      </div>
+      <div class="sync-row">
+        <button id="saveOfflineBtn" class="secondary-btn">Save Offline</button>
+        <button id="saveAndSyncBtn" class="primary-btn">Save & Sync</button>
+      </div>
+    </section>
+
+    <input id="captureInput" class="hidden" type="file" accept="audio/*">
+  </main>
+
+  <div id="toastHost" class="toast-host" aria-live="polite"></div>
+
+  <script type="module" src="./src/lib/pwa-bootstrap.js"></script>
+  <script type="module" src="./src/pages/capture.js"></script>
+</body>
+</html>

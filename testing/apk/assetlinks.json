@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "app.vercel.dynahaul_xb2.twa",
+        "sha256_cert_fingerprints": ["5C:01:50:A3:F5:1C:90:6E:CA:16:ED:61:CB:7B:B0:30:EA:6E:89:D0:BE:BD:4E:6D:97:48:B7:D1:65:F8:C2:C8"]
+      }
+    }]

@@ -1,0 +1,32 @@
+  API: /api/admin/import-fitter-csv
+  API: /api/create-user
+  API: /api/deliver-report
+  API: /api/generate-digest
+  API: /api/list-users
+  API: /api/manage-user
+  API: /api/send-alert
+  API: /api/send-email
+  API: /api/send-otp
+  API: /api/update-user-email
+  API: /api/v1/review/action
+  API: /api/v1/review/evidence
+  API: /api/v1/review/queue
+  API: /api/v1/sync/extract-preview
+  API: /api/v1/sync/photo-pipeline-preview
+  API: /api/v1/sync/status-batch
+  API: /api/v1/sync/submissions-finalize
+  API: /api/v1/sync/submissions-register
+  API: /api/v1/sync/submissions-status
+  API: /api/v1/sync/voice-pipeline-preview
+  API: /api/verify-otp
+
+DynaHaul X v2 — Server running
+  Local:    http://127.0.0.1:3000
+  Network:  http://<your-ip>:3000
+
+  Manager:  http://127.0.0.1:3000/manager/
+  Fitter:   http://127.0.0.1:3000/fitter/
+  Reports:  http://127.0.0.1:3000/manager/reports/
+  Setup:    http://127.0.0.1:3000/setup.html
+
+  APIs mounted: 21 / 22

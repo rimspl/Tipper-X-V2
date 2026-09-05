@@ -1,0 +1,21 @@
+node_modules/
+exe1/
+exe2/
+fitter-camera/
+migrations/
+tools/
+scripts/
+*.xlsx
+*.docx
+*.log
+.env
+.env.example
+server.log
+server-err.log
+README.md
+till login page.md
+message-for-amit-sir.md
+updates.md
+*.zip
+*.exe
+uploads/

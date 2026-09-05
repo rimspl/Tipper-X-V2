@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0d314b">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Fitter Queue | DynaHaul X</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="./src/styles/app.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="hero compact">
+      <div>
+        <p class="eyebrow">Sync monitor</p>
+        <h1>Offline Queue</h1>
+        <p class="subline">Track retries, processing state, and final report readiness.</p>
+      </div>
+      <div class="hero-actions">
+        <a class="ghost-btn" href="./index.html">Home</a>
+        <button id="refreshBtn" class="ghost-btn ghost-btn-btn">Refresh</button>
+      </div>
+      <div class="status-row">
+        <span id="networkBadge" class="chip">Checking network</span>
+        <span id="syncBadge" class="chip chip-muted">Queue 0</span>
+      </div>
+      <div class="sync-row">
+        <button id="syncNowBtn" class="primary-btn">Sync Pending Items</button>
+      </div>
+    </header>
+
+    <section class="panel">
+      <p id="queueSummary" class="hint">Loading queue details...</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Form</th>
+              <th>Local ID</th>
+              <th>State</th>
+              <th>Attempts</th>
+              <th>Next Retry</th>
+              <th>Last Error</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="queueBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div id="toastHost" class="toast-host" aria-live="polite"></div>
+
+  <script type="module" src="./src/lib/pwa-bootstrap.js"></script>
+  <script type="module" src="./src/pages/queue.js"></script>
+</body>
+</html>

@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digest Configuration | DynaHaul X</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Work Sans', sans-serif; background: #0f1419; color: #e2e8f0; min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+    .digest-card { background: #1e2530; border: 1px solid #2d3748; border-radius: 12px; padding: 32px; width: min(640px, 100%); }
+    h1 { font-family: 'Rajdhani', sans-serif; font-size: 1.6rem; color: #e2e8f0; margin-bottom: 4px; }
+    .hint { font-size: 0.85rem; color: #94a3b8; margin-bottom: 24px; }
+    .form-group { margin-bottom: 20px; }
+    label { display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px; font-weight: 500; }
+    select, input[type="time"], input[type="number"], input[type="email"], input[type="tel"] {
+      width: 100%; padding: 10px 12px; background: #161c24; border: 1px solid #2d3748;
+      border-radius: 6px; color: #e2e8f0; font-size: 0.9rem; font-family: inherit;
+    }
+    select:focus, input:focus { outline: none; border-color: #289672; }
+    .row { display: flex; gap: 12px; }
+    .row > * { flex: 1; }
+    .btn { padding: 10px 24px; background: #1e6f5c; color: white; border: none; border-radius: 6px; font-size: 0.9rem; font-weight: 600; cursor: pointer; }
+    .btn:hover { background: #289672; }
+    .btn-secondary { background: #2d3748; }
+    .btn-secondary:hover { background: #4a5568; }
+    .tag-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .tag { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: #242d3a; border-radius: 4px; font-size: 0.8rem; }
+    .tag-remove { cursor: pointer; color: #ef4444; font-weight: 700; font-size: 1rem; line-height: 1; }
+    .status-msg { margin-top: 16px; padding: 12px; border-radius: 6px; font-size: 0.85rem; display: none; }
+    .status-msg.success { display: block; background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .status-msg.error { display: block; background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+  </style>
+</head>
+<body>
+  <div class="digest-card">
+    <h1>Digest Configuration</h1>
+    <p class="hint">Configure daily/weekly fleet report delivery. Changes are saved immediately to your site.</p>
+
+    <div class="form-group">
+      <label for="reportType">Report Type</label>
+      <select id="reportType">
+        <option value="">— Disabled —</option>
+        <option value="daily">Daily Digest</option>
+        <option value="weekly">Weekly Report</option>
+        <option value="monthly">Monthly Summary</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="dayOfWeek">Day of Week (weekly/monthly only)</label>
+      <select id="dayOfWeek">
+        <option value="1">Monday</option>
+        <option value="2">Tuesday</option>
+        <option value="3">Wednesday</option>
+        <option value="4">Thursday</option>
+        <option value="5">Friday</option>
+        <option value="6">Saturday</option>
+        <option value="0">Sunday</option>
+      </select>
+    </div>
+
+    <div class="form-group row">
+      <div>
+        <label for="timeOfDay">Time of Day</label>
+        <input id="timeOfDay" type="time" value="07:00">
+      </div>
+      <div>
+        <label for="reportFormat">Format</label>
+        <select id="reportFormat">
+          <option value="html">HTML Email</option>
+          <option value="text">Plain Text SMS</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Recipients (email addresses)</label>
+      <div class="row">
+        <input id="recipientInput" type="email" placeholder="manager@example.com">
+        <button id="addRecipientBtn" type="button" class="btn-secondary">Add</button>
+      </div>
+      <div id="recipientList" class="tag-list"></div>
+    </div>
+
+    <button id="saveConfigBtn" type="button" class="btn">Save Configuration</button>
+    <div id="statusMsg" class="status-msg"></div>
+  </div>
+
+  <script>
+    const SITE_ID = sessionStorage.getItem('rims_session')
+      ? (() => { try { return JSON.parse(sessionStorage.getItem('rims_session')).siteId; } catch { return null; } })()
+      : null;
+
+    if (!SITE_ID) {
+      document.body.innerHTML = '<p style="color:#ef4444;padding:24px">No active session. Please log in from the Manager Dashboard first.</p>';
+    }
+
+    const RECIPIENTS = [];
+
+    document.getElementById('addRecipientBtn').addEventListener('click', () => {
+      const input = document.getElementById('recipientInput');
+      const email = input.value.trim().toLowerCase();
+      if (!email || !email.includes('@')) { alert('Enter a valid email address.'); return; }
+      if (RECIPIENTS.includes(email)) { alert('Recipient already added.'); return; }
+      RECIPIENTS.push(email);
+      input.value = '';
+      renderRecipients();
+    });
+
+    function renderRecipients() {
+      const list = document.getElementById('recipientList');
+      list.innerHTML = RECIPIENTS.map((r, i) =>
+        `<span class="tag">${r} <span class="tag-remove" data-index="${i}">&times;</span></span>`
+      ).join('');
+      list.querySelectorAll('.tag-remove').forEach(el => {
+        el.addEventListener('click', () => {
+          RECIPIENTS.splice(Number(el.dataset.index), 1);
+          renderRecipients();
+        });
+      });
+    }
+
+    document.getElementById('saveConfigBtn').addEventListener('click', async () => {
+      const reportType = document.getElementById('reportType').value;
+      const dayOfWeek = document.getElementById('dayOfWeek').value;
+      const timeOfDay = document.getElementById('timeOfDay').value;
+      const reportFormat = document.getElementById('reportFormat').value;
+      const msgEl = document.getElementById('statusMsg');
+      msgEl.className = 'status-msg';
+
+      if (!reportType) {
+        msgEl.textContent = 'Select a report type or leave as disabled.';
+        msgEl.className = 'status-msg error';
+        return;
+      }
+
+      msgEl.textContent = 'Saving...';
+      msgEl.className = 'status-msg';
+      msgEl.style.display = 'block';
+
+      try {
+        const supabase = window.__supabase || (window.supabaseClient);
+        if (!supabase) throw new Error('Supabase client not found.');
+
+        const existing = await supabase
+          .from('scheduled_reports')
+          .select('id')
+          .eq('site_id', SITE_ID)
+          .eq('report_type', reportType)
+          .maybeSingle();
+
+        const payload = {
+          site_id: SITE_ID,
+          report_type: reportType,
+          day_of_week: reportType === 'daily' ? null : Number(dayOfWeek),
+          time_of_day: timeOfDay,
+          format: reportFormat,
+          is_active: true
+        };
+
+        if (existing.data?.id) {
+          await supabase.from('scheduled_reports').update(payload).eq('id', existing.data.id);
+        } else {
+          await supabase.from('scheduled_reports').insert(payload);
+        }
+
+        msgEl.textContent = `Configuration saved successfully. ${RECIPIENTS.length > 0 ? 'Recipients will receive the report.' : 'Add recipients to enable delivery.'}`;
+        msgEl.className = 'status-msg success';
+      } catch (error) {
+        msgEl.textContent = 'Failed to save: ' + (error.message || 'Unknown error');
+        msgEl.className = 'status-msg error';
+      }
+    });
+
+    async function loadExistingConfig() {
+      try {
+        const supabase = window.__supabase || (window.supabaseClient);
+        if (!supabase) return;
+
+        const { data } = await supabase
+          .from('scheduled_reports')
+          .select('*')
+          .eq('site_id', SITE_ID)
+          .eq('is_active', true)
+          .maybeSingle();
+
+        if (data) {
+          document.getElementById('reportType').value = data.report_type || '';
+          document.getElementById('dayOfWeek').value = String(data.day_of_week ?? 1);
+          document.getElementById('timeOfDay').value = data.time_of_day || '07:00';
+          document.getElementById('reportFormat').value = data.format || 'html';
+
+          const { data: subscribers } = await supabase
+            .from('subscriber_contacts')
+            .select('phone')
+            .eq('site_id', SITE_ID)
+            .eq('is_active', true);
+
+          if (subscribers) {
+            subscribers.forEach(s => {
+              if (s.phone && s.phone.includes('@') && !RECIPIENTS.includes(s.phone)) {
+                RECIPIENTS.push(s.phone);
+              }
+            });
+            renderRecipients();
+          }
+        }
+      } catch (error) {
+        console.warn('Could not load existing config:', error);
+      }
+    }
+
+    loadExistingConfig();
+  </script>
+  <script src="../supabase-init.js"></script>
+</body>
+</html>

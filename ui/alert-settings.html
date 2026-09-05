@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alert Settings | DynaHaul X</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Work Sans', sans-serif; background: #0f1419; color: #e2e8f0; min-height: 100vh; padding: 24px; }
+    .container { max-width: 860px; margin: 0 auto; }
+    h1 { font-family: 'Rajdhani', sans-serif; font-size: 1.8rem; margin-bottom: 4px; }
+    .hint { font-size: 0.85rem; color: #94a3b8; margin-bottom: 20px; }
+    .tabs { display: flex; gap: 4px; margin-bottom: 24px; border-bottom: 1px solid #2d3748; }
+    .tab-btn { padding: 10px 20px; background: transparent; border: none; color: #94a3b8; font-size: 0.9rem; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; }
+    .tab-btn.active { color: #289672; border-bottom-color: #289672; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+    .card { background: #1e2530; border: 1px solid #2d3748; border-radius: 8px; padding: 20px; margin-bottom: 12px; }
+    .rule-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #242d3a; }
+    .rule-row:last-child { border-bottom: none; }
+    .rule-label { flex: 1; }
+    .rule-label strong { display: block; font-size: 0.9rem; }
+    .rule-label span { font-size: 0.78rem; color: #94a3b8; }
+    .toggle { position: relative; width: 44px; height: 24px; background: #2d3748; border-radius: 12px; cursor: pointer; transition: background 0.2s; flex-shrink: 0; }
+    .toggle.on { background: #289672; }
+    .toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: transform 0.2s; }
+    .toggle.on::after { transform: translateX(20px); }
+    .threshold-input { width: 80px; padding: 6px 8px; background: #161c24; border: 1px solid #2d3748; border-radius: 4px; color: #e2e8f0; font-size: 0.82rem; text-align: center; }
+    .sub-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #242d3a; font-size: 0.85rem; }
+    .sub-row:last-child { border-bottom: none; }
+    .sub-name { width: 120px; }
+    .sub-phone { flex: 1; }
+    .sub-role { width: 80px; color: #94a3b8; font-size: 0.78rem; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.72rem; font-weight: 600; background: #242d3a; color: #94a3b8; }
+    .badge.sms { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+    .badge.whatsapp { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+    .input-group { display: flex; gap: 8px; margin: 12px 0; }
+    .input-group input, .input-group select { padding: 8px 12px; background: #161c24; border: 1px solid #2d3748; border-radius: 6px; color: #e2e8f0; font-size: 0.85rem; }
+    .input-group input { flex: 1; }
+    .btn { padding: 8px 16px; background: #1e6f5c; color: white; border: none; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+    .btn:hover { background: #289672; }
+    .btn-danger { background: #dc2626; }
+    .btn-danger:hover { background: #ef4444; }
+    .log-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .log-table th { text-align: left; padding: 8px; background: #161c24; color: #94a3b8; border-bottom: 1px solid #2d3748; font-weight: 500; }
+    .log-table td { padding: 8px; border-bottom: 1px solid #242d3a; }
+    .status-sent { color: #10b981; }
+    .status-failed { color: #ef4444; }
+    .status-pending { color: #f59e0b; }
+    .empty-state { text-align: center; padding: 24px; color: #94a3b8; font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Alert Configuration</h1>
+    <p class="hint">Configure SMS/WhatsApp alerts for fleet events.</p>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="rules">Alert Rules</button>
+      <button class="tab-btn" data-tab="subscribers">Subscribers</button>
+      <button class="tab-btn" data-tab="history">Alert History</button>
+    </div>
+
+    <div id="tab-rules" class="tab-panel active">
+      <div class="card" id="rulesContainer">
+        <p class="hint">Toggle each rule on/off. Thresholds are in the rule's natural unit (PSI for pressure, hours for fitment, mm for RTD).</p>
+        <div id="rulesList"></div>
+      </div>
+      <button id="saveRulesBtn" class="btn" style="display:none">Save Changes</button>
+    </div>
+
+    <div id="tab-subscribers" class="tab-panel">
+      <div class="card">
+        <div class="input-group">
+          <input id="subName" type="text" placeholder="Name (e.g. Ramesh)">
+          <input id="subPhone" type="tel" placeholder="Phone (e.g. 9876543210)">
+          <select id="subRole">
+            <option value="manager">Manager</option>
+            <option value="foreman">Foreman</option>
+            <option value="fitter" selected>Fitter</option>
+          </select>
+          <button id="addSubBtn" class="btn">Add</button>
+        </div>
+        <div id="subscribersList"></div>
+      </div>
+    </div>
+
+    <div id="tab-history" class="tab-panel">
+      <div class="card">
+        <table class="log-table">
+          <thead><tr><th>Time</th><th>Event</th><th>Message</th><th>Channel</th><th>Recipient</th><th>Status</th></tr></thead>
+          <tbody id="historyBody"></tbody>
+        </table>
+        <div id="historyEmpty" class="empty-state">No alert history yet.</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="../../supabase-init.js"></script>
+  <script type="module" src="./alert-settings.js"></script>
+</body>
+</html>

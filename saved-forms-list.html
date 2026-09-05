@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saved Forms Repository | Volvo Tipper Platform</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .repo-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .repo-title h2 {
+            margin: 0;
+            color: var(--volvo-blue);
+        }
+
+        .repo-title p {
+            margin: 5px 0 0;
+            color: #666;
+        }
+
+        .table-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .action-bar {
+            margin-bottom: 15px;
+            text-align: right;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app-header"></div>
+
+    <div class="container">
+        <!-- Dynamic Header Info -->
+        <div class="repo-header">
+            <div class="repo-title">
+                <h2 id="page-title">Saved Forms</h2>
+                <p id="page-subtitle">Repository View</p>
+            </div>
+            <div class="repo-meta" id="header-meta">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+
+        <div class="table-container">
+            <div class="action-bar">
+                <button class="btn-submit" onclick="exportListToExcel()">Download Excel Report</button>
+            </div>
+            <table class="data-table" id="forms-table">
+                <thead>
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>Form ID</th>
+                        <th>User</th>
+                        <th>Data Summary</th> <!-- Flexible column -->
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="forms-body">
+                    <!-- Rows injected here -->
+                </tbody>
+            </table>
+            <div id="no-data-msg" style="text-align:center; padding: 20px; color: #888; display: none;">
+                No records found for this category.
+            </div>
+        </div>
+    </div>
+
+    <!-- Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="src/lib/auth.js"></script>
+    <script src="src/lib/config.js"></script>
+    <script src="src/lib/session.js"></script>
+    <script src="src/lib/navigation.js"></script>
+    <script src="src/lib/header.js"></script>
+    <script src="src/lib/database.js"></script>
+    <script src="src/lib/toast.js"></script>
+    <script src="src/lib/confirm.js"></script>
+    <script src="src/lib/app-init.js"></script>
+    <script src="form-storage-supabase-direct.js"></script>
+    <script src="saved-forms-list.js"></script>
+</body>
+
+</html>

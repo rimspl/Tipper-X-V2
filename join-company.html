@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Company - Digital Platform</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1b365d 0%, #2c5282 50%, #3182ce 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+        }
+
+        .join-container {
+            width: 100%;
+            max-width: 450px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            padding: 50px 40px;
+            text-align: center;
+        }
+
+        .logo-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #1b365d, #3182ce);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 8px 20px rgba(27, 54, 93, 0.3);
+        }
+
+        .logo-icon i {
+            font-size: 30px;
+            color: white;
+        }
+
+        h2 {
+            color: #1b365d;
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #718096;
+            font-size: 0.95rem;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            color: #4a5568;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .code-input {
+            width: 100%;
+            padding: 16px 20px;
+            font-size: 1.5rem;
+            font-family: monospace;
+            letter-spacing: 3px;
+            text-align: center;
+            text-transform: uppercase;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            background: #f8fafc;
+            transition: all 0.3s;
+        }
+
+        .code-input:focus {
+            outline: none;
+            border-color: #3182ce;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(49, 130, 206, 0.1);
+        }
+
+        .code-input::placeholder {
+            color: #cbd5e0;
+            font-size: 1.2rem;
+        }
+
+        .btn-join {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #1b365d, #2c5282);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-join:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(27, 54, 93, 0.4);
+        }
+
+        .btn-join:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 25px 0;
+            color: #a0aec0;
+            font-size: 0.85rem;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #e2e8f0;
+        }
+
+        .divider span {
+            padding: 0 15px;
+        }
+
+        .btn-setup-new {
+            width: 100%;
+            padding: 14px;
+            background: white;
+            color: #2c5282;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-setup-new:hover {
+            border-color: #2c5282;
+            background: #f0f5ff;
+        }
+
+        .error-msg {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            font-size: 0.9rem;
+        }
+
+        .success-msg {
+            background: #c6f6d5;
+            color: #276749;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            font-size: 0.9rem;
+        }
+
+        .footer-text {
+            margin-top: 25px;
+            color: #a0aec0;
+            font-size: 0.8rem;
+        }
+
+        @media (max-width: 480px) {
+            .join-container {
+                padding: 40px 25px;
+            }
+
+            .code-input {
+                font-size: 1.2rem;
+                letter-spacing: 2px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="join-container">
+        <div class="logo-icon">
+            <i class="fas fa-users"></i>
+        </div>
+        <h2>Join Your Team</h2>
+        <p class="subtitle">Enter the code shared by your team member</p>
+
+        <div id="error-msg" class="error-msg"></div>
+        <div id="success-msg" class="success-msg"></div>
+
+        <form id="joinForm">
+            <div class="form-group">
+                <label>Company Code</label>
+                <input type="text" id="inviteCode" class="code-input" placeholder="XXXX-XXXX" maxlength="9"
+                    autocomplete="off" required>
+            </div>
+
+            <button type="submit" class="btn-join" id="btn-join">
+                <i class="fas fa-sign-in-alt"></i>
+                Join Team
+            </button>
+        </form>
+
+        <div class="divider">
+            <span>OR</span>
+        </div>
+
+        <button class="btn-setup-new" onclick="window.location.href='master-data.html'">
+            <i class="fas fa-plus"></i> I'm the first user - Setup New
+        </button>
+
+        <p class="footer-text">
+            <a href="#" onclick="logout(); return false;" style="color: #3182ce;">Logout</a> and try another account
+        </p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="supabase-init.js"></script>
+    <script src="src/lib/auth.js"></script>
+    <script src="src/lib/config.js"></script>
+    <script src="src/lib/session.js"></script>
+    <script src="src/lib/navigation.js"></script>
+    <script src="src/lib/header.js"></script>
+    <script src="src/lib/database.js"></script>
+    <script src="src/lib/toast.js"></script>
+    <script src="src/lib/confirm.js"></script>
+    <script src="src/lib/app-init.js"></script>
+
+    <script>
+        // Format input as user types (XXXX-XXXX)
+        document.getElementById('inviteCode').addEventListener('input', function (e) {
+            let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+            if (value.length > 4) {
+                value = value.slice(0, 4) + '-' + value.slice(4, 8);
+            }
+            e.target.value = value;
+        });
+
+        document.getElementById('joinForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const code = document.getElementById('inviteCode').value.trim().toUpperCase();
+            const errorEl = document.getElementById('error-msg');
+            const successEl = document.getElementById('success-msg');
+            const btn = document.getElementById('btn-join');
+
+            // Reset
+            errorEl.style.display = 'none';
+            successEl.style.display = 'none';
+
+            if (!code || code.length < 9) {
+                errorEl.textContent = 'Please enter a valid 8-character code (XXXX-XXXX)';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Joining...';
+
+            try {
+                if (!window.supabaseClient) throw new Error("Database not connected");
+
+                // 1. Find site with this invite code
+                const { data: siteData, error: siteError } = await window.supabaseClient
+                    .from('sites')
+                    .select('id, site_name, customer_id, customers(name)')
+                    .eq('invite_code', code)
+                    .single();
+
+                if (siteError || !siteData) {
+                    throw new Error("Invalid code. Please check and try again.");
+                }
+
+                // 2. Get current user session
+                const session = JSON.parse(sessionStorage.getItem('rims_session') || '{}');
+                if (!session.uid) {
+                    throw new Error("Session expired. Please login again.");
+                }
+
+                // 3. Update user_profiles to link to this site
+                const { error: updateError } = await window.supabaseClient
+                    .from('user_profiles')
+                    .update({
+                        customer_id: siteData.customer_id,
+                        site_id: siteData.id
+                    })
+                    .eq('id', session.uid);
+
+                if (updateError) {
+                    throw new Error("Failed to join team. Please try again.");
+                }
+
+                // 4. Update session with new data
+                session.customerId = siteData.customer_id;
+                session.siteId = siteData.id;
+                session.siteName = siteData.site_name;
+                session.customerName = siteData.customers?.name || '';
+                sessionStorage.setItem('rims_session', JSON.stringify(session));
+
+                // 5. Also update localStorage
+                const master = JSON.parse(localStorage.getItem('rims_master_data') || '{}');
+                master.customerName = session.customerName;
+                master.siteName = session.siteName;
+                localStorage.setItem('rims_master_data', JSON.stringify(master));
+
+                // 6. Show success and redirect
+                successEl.textContent = `✅ Successfully joined ${session.customerName}!`;
+                successEl.style.display = 'block';
+
+                setTimeout(() => {
+                    // Redirect based on role
+                    if (session.role === 'manager') {
+                        window.location.href = 'manager/index.html';
+                    } else {
+                        window.location.href = 'index.html';
+                    }
+                }, 1500);
+
+            } catch (err) {
+                errorEl.textContent = err.message;
+                errorEl.style.display = 'block';
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Join Team';
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Account — DynaHaul X</title>
+  <meta name="theme-color" content="#1f242b">
+  <style>
+    :root {
+      --gold: #daa520;
+      --gold-soft: #efd28a;
+      --text: #f2f4f6;
+      --muted: #b7c0c8;
+      --line: rgba(218, 165, 32, 0.34);
+      --danger-bg: #45282f;
+      --danger: #ffbec7;
+      --ok-bg: #1f4232;
+      --ok: #ccf7de;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 16px;
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 20% 10%, rgba(218,165,32,0.18), transparent 45%),
+        radial-gradient(circle at 80% 18%, rgba(113,126,140,0.14), transparent 44%),
+        linear-gradient(160deg, #161a1f 0%, #20262d 52%, #161b22 100%);
+    }
+    .card {
+      width: min(480px, 100%);
+      border-radius: 18px;
+      border: 1px solid rgba(218,165,32,0.42);
+      background: linear-gradient(180deg, rgba(218,165,32,0.12), transparent 44%),
+                  linear-gradient(160deg, #212730, #1a2028 70%, #141922 100%);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.09), 0 18px 34px rgba(5,9,14,0.42);
+      padding: 22px;
+    }
+    h1 { text-align:center; font-size:1.45rem; color:#f4eddc; margin-bottom:4px; }
+    .sub { text-align:center; color:var(--muted); font-size:0.9rem; margin-bottom:18px; }
+    .msg { border-radius:10px; padding:10px 12px; margin-bottom:12px; font-size:0.9rem; display:none; }
+    .msg.ok { background:var(--ok-bg); color:var(--ok); border:1px solid rgba(204,247,222,0.35); }
+    .msg.err { background:var(--danger-bg); color:var(--danger); border:1px solid rgba(255,170,188,0.35); }
+    label { display:block; font-size:0.86rem; color:#d8e0e7; font-weight:600; margin-bottom:6px; }
+    input, select {
+      width:100%; min-height:46px; border-radius:10px;
+      border:1px solid var(--line);
+      background: linear-gradient(165deg, #1f252d, #171c24);
+      color:#f5e7c5; padding:0 12px; font-size:0.98rem; font-weight:600;
+      margin-bottom:12px;
+    }
+    select { cursor:pointer; }
+    input:focus, select:focus { outline:2px solid rgba(218,165,32,0.32); border-color:rgba(218,165,32,0.62); }
+    .btn {
+      width:100%; min-height:48px; border-radius:12px;
+      border:1px solid rgba(218,165,32,0.72);
+      background: linear-gradient(138deg, #b78616, #daa520);
+      color:#211c14; font-size:0.98rem; font-weight:800; letter-spacing:0.02em;
+      cursor:pointer; box-shadow:0 12px 22px rgba(80,56,18,0.32);
+    }
+    .btn:disabled { opacity:0.62; cursor:not-allowed; box-shadow:none; }
+    .loader { display:none; text-align:center; color:var(--muted); font-size:0.88rem; margin-top:8px; }
+    .loader.active { display:block; }
+    .link { text-align:center; margin-top:14px; }
+    .link a { color:var(--gold-soft); text-decoration:none; font-weight:600; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Create Your Account</h1>
+    <p class="sub">Sign-up is a one-time, auto-confirmed flow — no OTP needed for first-time users.</p>
+
+    <div id="okMsg" class="msg ok"></div>
+    <div id="errMsg" class="msg err"></div>
+
+    <form id="signupForm" novalidate>
+      <label for="nameInput">Full Name</label>
+      <input id="nameInput" type="text" required placeholder="Abhishek, e.g.">
+
+      <label for="emailInput">Email</label>
+      <input id="emailInput" type="email" required autocomplete="email" placeholder="name@company.com">
+
+      <label for="passInput">Password</label>
+      <input id="passInput" type="password" required autocomplete="new-password" placeholder="At least 6 characters">
+
+      <label for="roleSelect">Role</label>
+      <select id="roleSelect">
+        <option value="manager">Manager</option>
+        <option value="fitter">Fitter (ground)</option>
+      </select>
+
+      <button id="signupBtn" class="btn" type="submit">Create Account</button>
+      <p id="signupLoader" class="loader">Creating account…</p>
+    </form>
+
+    <div class="link">
+      <p>Already have an account? <a href="./fitter/login.html?dev=1">Sign-in</a></p>
+      <p style="margin-top:10px;"><a href="./setup.html">Activate with license key</a></p>
+    </div>
+  </main>
+
+  <script>
+    (function signup() {
+      const SUPABASE_URL = 'https://ajbbcoygzoxdtejvhbfq.supabase.co';
+      const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFqYmJjb3lnem94ZHRlanZoYmZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUyMzIzNjUsImV4cCI6MjEwMDgwODM2NX0.mmAUfLd3gUs06iFkKAiYurjrOz7CuB3ViSmtNSY9Zvg';
+
+      const r = {
+        form:    document.getElementById('signupForm'),
+        name:    document.getElementById('nameInput'),
+        email:   document.getElementById('emailInput'),
+        pass:    document.getElementById('passInput'),
+        role:    document.getElementById('roleSelect'),
+        btn:     document.getElementById('signupBtn'),
+        loader:  document.getElementById('signupLoader'),
+        ok:      document.getElementById('okMsg'),
+        err:     document.getElementById('errMsg'),
+      };
+
+      async function resolveSite() {
+        const base = SUPABASE_URL.replace(/\/$/, '');
+        const headers = { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` };
+
+        const res = await fetch(`${base}/rest/v1/sites?select=id,site_name,customer_id&order=created_at.asc&limit=1`, { headers });
+        if (!res.ok) throw new Error('Cannot reach database');
+        const sites = await res.json();
+        if (sites.length > 0) return sites[0];
+
+        const custRes = await fetch(`${base}/rest/v1/customers?select=id&order=created_at.asc&limit=1`, { headers });
+        let customerId = null;
+        if (custRes.ok) {
+          const custs = await custRes.json();
+          if (custs.length > 0) customerId = custs[0].id;
+        }
+        if (!customerId) {
+          const newCust = await fetch(`${base}/rest/v1/customers`, {
+            method: 'POST', headers: { ...headers, 'Content-Type': 'application/json', Prefer: 'return=representation' },
+            body: JSON.stringify({ name: 'Default Customer' }),
+          });
+          if (!newCust.ok) throw new Error('Failed to create customer');
+          customerId = (await newCust.json())[0].id;
+        }
+
+        const siteRes = await fetch(`${base}/rest/v1/sites`, {
+          method: 'POST', headers: { ...headers, 'Content-Type': 'application/json', Prefer: 'return=representation' },
+          body: JSON.stringify({ site_name: 'Default Site', customer_id: customerId, invite_code: 'DEMO0001' }),
+        });
+        if (!siteRes.ok) {
+          const err = await siteRes.json().catch(() => ({}));
+          if (err.code !== '23505') throw new Error('Failed to create site');
+          const retry = await fetch(`${base}/rest/v1/sites?select=id,site_name,customer_id&order=created_at.asc&limit=1`, { headers });
+          return (await retry.json())[0];
+        }
+        return (await siteRes.json())[0];
+      }
+
+      r.form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        r.ok.style.display = 'none';
+        r.err.style.display = 'none';
+
+        const name     = r.name.value.trim();
+        const email    = r.email.value.trim().toLowerCase();
+        const password = r.pass.value;
+        const role     = r.role.value;
+
+        if (!name || !email || !password || password.length < 6 || !role) {
+          r.err.textContent = 'Fill all fields. Password must be 6+ characters.';
+          r.err.style.display = 'block';
+          return;
+        }
+
+        r.btn.disabled = true;
+        r.loader.classList.add('active');
+
+        try {
+          r.loader.textContent = 'Setting up your workspace…';
+          const site = await resolveSite();
+
+          r.loader.textContent = 'Creating account…';
+          const res = await fetch('/api/create-user', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email, password, name,
+              role,
+              user_type: role,
+              site_id: site.id,
+              customer_id: site.customer_id,
+            }),
+          });
+          const body = await res.json().catch(() => ({}));
+          if (!res.ok || !body.success) {
+            throw new Error(body.error || body.message || 'Server rejected. Check server logs.');
+          }
+          r.ok.textContent = 'Account created — redirecting to login…';
+          r.ok.style.display = 'block';
+          setTimeout(() => { window.location.href = './fitter/login.html'; }, 2000);
+        } catch (err) {
+          r.err.textContent = err.message || 'Creation failed';
+          r.err.style.display = 'block';
+        } finally {
+          r.btn.disabled = false;
+          r.loader.classList.remove('active');
+          r.loader.textContent = 'Creating account…';
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

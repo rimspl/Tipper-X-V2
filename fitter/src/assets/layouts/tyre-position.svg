@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" width="60" height="60">
+  <defs>
+    <linearGradient id="tyreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2a2a2a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1a1a1a;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <circle cx="30" cy="30" r="28" fill="url(#tyreGrad)" stroke="#d4a81a" stroke-width="2"/>
+  <circle cx="30" cy="30" r="24" fill="none" stroke="#3a3a3a" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <circle cx="30" cy="30" r="16" fill="#3a3a3a" stroke="#555" stroke-width="1"/>
+  <circle cx="30" cy="30" r="8" fill="#555" stroke="#777" stroke-width="0.5"/>
+  <circle cx="30" cy="24" r="1.5" fill="#999"/>
+  <circle cx="30" cy="36" r="1.5" fill="#999"/>
+  <circle cx="24" cy="30" r="1.5" fill="#999"/>
+  <circle cx="36" cy="30" r="1.5" fill="#999"/>
+  <circle cx="30" cy="30" r="2" fill="#d4a81a"/>
+</svg>

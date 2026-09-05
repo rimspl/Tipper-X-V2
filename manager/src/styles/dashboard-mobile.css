@@ -1,0 +1,179 @@
+/* ═══════════════════════════════════════════════════════════
+   DynaHaul X — Mobile / Print Responsive Overrides
+   Added as part of Tipper Upgrade Project — June 2026
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Tablet: ≤ 1200px ─────────────────────────────────── */
+@media (max-width: 1200px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .analytics-block { padding: 16px; }
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+}
+
+/* ── Mobile: ≤ 768px ──────────────────────────────────── */
+@media (max-width: 768px) {
+  .manager-header .brand-row {
+    flex-direction: column; align-items: flex-start; gap: 12px;
+  }
+  .manager-header .user-row {
+    flex-wrap: wrap; gap: 8px;
+  }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .kpi-card { padding: 12px; }
+  .kpi-value { font-size: 1.4rem; }
+
+  .tab-nav { gap: 4px; }
+  .tab-btn {
+    font-size: 0.8rem; padding: 8px 10px; white-space: nowrap;
+  }
+  .tab-badge { display: none; }
+
+  .panel-head { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .toolbar { width: 100%; justify-content: flex-start; }
+
+  .filters { flex-wrap: wrap; }
+  .filters input,
+  .filters select { width: 100%; min-width: 0; }
+
+  .table-wrap table { font-size: 0.78rem; }
+  .table-wrap th,
+  .table-wrap td { padding: 6px 8px; white-space: nowrap; }
+
+  .table-footer { flex-direction: column; gap: 8px; align-items: flex-start; }
+
+  .analytics-block { padding: 12px; }
+  .analytics-head { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .analytics-head-actions { width: 100%; }
+  .segmented-toggle { width: 100%; }
+  .segmented-toggle .btn { flex: 1; font-size: 0.78rem; }
+
+  .health-score-row { flex-direction: column; align-items: stretch; }
+  .health-gauge-wrap { margin: 0 auto; }
+  .health-breakdown { padding-left: 0; margin-top: 16px; }
+
+  .savings-hero { padding: 20px; }
+  .savings-hero-value { font-size: 1.6rem; }
+  .savings-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+
+  .table-pager { flex-wrap: wrap; gap: 6px; }
+  .table-pager .btn { font-size: 0.78rem; padding: 6px 12px; }
+
+  .evidence-modal-card { margin: 10px; max-height: 90vh; }
+
+  .date-range-bar { flex-wrap: wrap; }
+  .date-range-bar select,
+  .date-range-bar input { width: 100%; }
+}
+
+/* ── Small phone: ≤ 480px ─────────────────────────────── */
+@media (max-width: 480px) {
+  .kpi-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+  .kpi-card { padding: 10px; }
+  .kpi-value { font-size: 1.2rem; }
+  .kpi-label { font-size: 0.72rem; }
+
+  .tab-btn {
+    font-size: 0.72rem; padding: 6px 8px;
+  }
+
+  .table-wrap table { font-size: 0.7rem; }
+  .table-wrap th,
+  .table-wrap td { padding: 4px 6px; }
+
+  .analytics-block { padding: 8px; }
+  .analytics-block h3 { font-size: 0.95rem; }
+
+  .health-gauge { width: 100px; height: 100px; }
+  .health-score-value { font-size: 1.8rem; }
+  .health-sub-label { font-size: 0.72rem; }
+  .health-sub-value { font-size: 0.72rem; }
+
+  .savings-grid { grid-template-columns: 1fr; }
+  .savings-hero-value { font-size: 1.3rem; }
+
+  .pct-badge { font-size: 0.7rem; padding: 2px 6px; }
+
+  .toolbar .btn { font-size: 0.78rem; padding: 6px 10px; }
+
+  .filter-toggle-btn { font-size: 0.78rem; }
+}
+
+/* ── Fleet Health Score Widget Styles ──────────────────── */
+.health-score-row {
+  display: flex; align-items: center; gap: 24px; padding: 16px 0;
+}
+.health-gauge-wrap { text-align: center; flex-shrink: 0; }
+.health-gauge {
+  --health-pct: 0%;
+  --health-color: var(--ok);
+  width: 120px; height: 120px; border-radius: 50%;
+  background: conic-gradient(var(--health-color) 0deg, var(--health-color) calc(var(--health-pct) * 3.6deg), var(--surface) calc(var(--health-pct) * 3.6deg));
+  display: grid; place-items: center; position: relative;
+}
+.health-gauge-inner {
+  width: 90px; height: 90px; border-radius: 50%;
+  background: var(--bg-soft); display: grid; place-items: center;
+}
+.health-score-value { font-size: 2rem; font-weight: 700; color: var(--ink); line-height: 1; }
+.health-score-label { font-size: 0.72rem; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.06em; }
+.health-breakdown { flex: 1; display: grid; gap: 8px; padding-left: 8px; }
+.health-sub { display: flex; align-items: center; gap: 8px; }
+.health-sub-label { width: 110px; font-size: 0.8rem; color: var(--ink-soft); flex-shrink: 0; }
+.health-sub-bar { flex: 1; height: 8px; background: var(--surface); border-radius: 4px; overflow: hidden; }
+.health-sub-bar .bar-fill { display: block; height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+.health-sub-value { width: 48px; text-align: right; font-size: 0.8rem; font-weight: 600; color: var(--ink); flex-shrink: 0; }
+.bar-fill.ok { background: var(--ok); }
+.bar-fill.info { background: var(--info); }
+.bar-fill.warn { background: var(--warn); }
+.bar-fill.danger { background: var(--danger); }
+
+.health-score-empty {
+  padding: 24px; text-align: center;
+}
+
+/* ── Date Range Filter Bar ─────────────────────────────── */
+.date-range-bar {
+  display: flex; align-items: center; gap: 12px; padding: 12px 0; flex-wrap: wrap;
+}
+.date-range-bar label { font-size: 0.82rem; color: var(--ink-soft); }
+.date-range-bar select,
+.date-range-bar input[type="date"] {
+  background: var(--surface); color: var(--ink); border: 1px solid var(--line);
+  border-radius: 6px; padding: 6px 10px; font-size: 0.82rem; font-family: inherit;
+}
+.date-range-bar .btn { font-size: 0.82rem; padding: 6px 14px; }
+
+/* ── Distribution / Trend / Pie Table Styles ──────────── */
+.bar-inline {
+  display: inline-block; width: 100px; height: 8px; background: var(--surface);
+  border-radius: 4px; overflow: hidden; vertical-align: middle;
+}
+.bar-inline .bar-fill { display: block; height: 100%; border-radius: 4px; }
+
+.pct-badge {
+  display: inline-block; padding: 2px 8px; border-radius: 4px;
+  font-size: 0.78rem; font-weight: 600;
+}
+.pct-low { background: var(--ok-soft); color: var(--ok); }
+.pct-mid { background: var(--warn-soft); color: var(--warn); }
+.pct-high { background: var(--danger-soft); color: var(--danger); }
+
+.pct-label { font-size: 0.8rem; color: var(--ink-soft); margin-left: 6px; }
+
+/* ── Print / Report Styles (embedded for dashboard) ───── */
+@media print {
+  header, .tab-nav, .toolbar, .filter-toggle-btn, .filters, .btn,
+  .evidence-modal, .fuel-upload-card, #fuelUploadModal, .toast-host { display: none !important; }
+
+  body { background: white; color: black; }
+  .manager-shell { max-width: 100%; }
+  .tab-panel { display: block !important; }
+  .tab-panel:not(.active) { display: block !important; }
+  .kpi-card { border: 1px solid #ccc; }
+  .table-wrap { overflow: visible; }
+  .table-wrap table { font-size: 9pt; }
+  .table-wrap th { background: #f0f0f0; color: black; }
+  .table-wrap td { color: black; }
+  .health-gauge { border: 2px solid #333; }
+  .health-score-value { color: black; }
+}

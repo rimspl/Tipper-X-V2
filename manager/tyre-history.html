@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tyre History | DynaHaul X</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./src/styles/dashboard.css">
+  <script>
+    (function enforceManagerAccessEarly() {
+      function resolveUserType(session) {
+        const explicit = String(session?.userType || '').trim().toLowerCase();
+        if (explicit === 'manager' || explicit === 'fitter') {
+          return explicit;
+        }
+
+        const legacyRole = String(session?.role || '').trim().toLowerCase();
+        return legacyRole === 'manager' ? 'manager' : 'fitter';
+      }
+
+      const raw = (() => { let r = sessionStorage.getItem('rims_session'); return r; })();
+      if (!raw) {
+        window.location.replace('../fitter/login.html');
+        return;
+      }
+
+      try {
+        const session = JSON.parse(raw);
+        const isManager = resolveUserType(session) === 'manager';
+        if (!session?.uid || !isManager) {
+          window.location.replace('../fitter/index.html');
+        }
+      } catch (error) {
+        sessionStorage.removeItem('rims_session');
+        localStorage.removeItem('rims_session');
+        window.location.replace('../fitter/login.html');
+      }
+    })();
+  </script>
+</head>
+<body>
+  <!-- Loading Overlay -->
+  <div id="loadingOverlay" class="loading-overlay">
+    <div class="loading-inner">
+      <div class="loading-spinner"></div>
+      <p class="loading-title">DynaHaul X</p>
+      <p class="loading-hint">Loading operational data…</p>
+      <div class="loading-skeleton">
+        <div class="skeleton-bar h40"></div>
+        <div class="skeleton-bar w80"></div>
+        <div class="skeleton-bar w60"></div>
+        <div class="skeleton-bar w40"></div>
+      </div>
+    </div>
+  </div>
+
+  <header class="manager-header">
+    <div class="brand-row">
+      <div>
+        <p class="eyebrow">Tyre-level deep dive</p>
+        <h1>Tyre History View</h1>
+      </div>
+      <div class="user-row">
+        <span id="historyUserLabel" class="chip">Manager</span>
+        <a id="historyTopBack" class="chip-link" href="./index.html#tyres">Back to Dashboard</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="manager-shell">
+    <section class="tab-panel active">
+      <div class="panel-head">
+        <div class="panel-head-copy">
+          <h2 id="historyTitle">Tyre History</h2>
+          <p id="historyMeta" class="hint">Loading records...</p>
+        </div>
+        <div class="toolbar">
+          <button id="historyExportBtn" type="button" class="btn btn-secondary">Export CSV</button>
+          <a id="historyBackBtn" class="btn btn-secondary" href="./index.html#tyres">Back</a>
+        </div>
+      </div>
+
+      <div class="filters">
+        <input id="historyFrom" type="date">
+        <input id="historyTo" type="date">
+        <input id="historyTruck" type="text" placeholder="Truck">
+        <input id="historyBrand" type="text" placeholder="Brand">
+        <select id="historyActivity">
+          <option value="">All Activities</option>
+          <option value="PRESSURE_CHECK">Pressure Check</option>
+          <option value="INSPECTION">Inspection</option>
+          <option value="FITMENT">Fitment</option>
+          <option value="REMOVAL">Removal</option>
+        </select>
+        <button id="historyApplyFilter" type="button" class="btn">Apply</button>
+      </div>
+
+      <div class="table-footer table-footer-top">
+        <p id="historyPageMeta" class="hint">Showing 0 of 0 rows</p>
+        <div class="table-pager">
+          <label class="pager-label" for="historyPageSize">Rows</label>
+          <select id="historyPageSize" class="pager-select">
+            <option value="25">25</option>
+            <option value="50" selected>50</option>
+            <option value="100">100</option>
+          </select>
+          <button id="historyPrevPage" type="button" class="btn btn-secondary">Prev</button>
+          <span id="historyPageInfo" class="hint">Page 1 / 1</span>
+          <button id="historyNextPage" type="button" class="btn btn-secondary">Next</button>
+        </div>
+      </div>
+
+      <div class="table-wrap table-wrap-history">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Activity</th>
+              <th>Truck</th>
+              <th>Tyre Number</th>
+              <th>Brand</th>
+              <th>Position</th>
+              <th>Odometer</th>
+              <th>RTD1</th>
+              <th>RTD2</th>
+              <th>PSI Found</th>
+              <th>PSI Corrected</th>
+              <th>Remarks</th>
+              <th>Evidence</th>
+            </tr>
+          </thead>
+          <tbody id="historyTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div id="historyEvidenceModal" class="evidence-modal hidden" role="dialog" aria-modal="true" aria-labelledby="historyEvidenceModalTitle">
+    <div class="evidence-modal-card">
+      <div class="evidence-modal-head">
+        <h3 id="historyEvidenceModalTitle">Voice Evidence</h3>
+        <button id="historyEvidenceModalClose" type="button" class="btn btn-secondary">Close</button>
+      </div>
+      <p id="historyEvidenceModalSub" class="hint">Loading evidence...</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Field</th>
+              <th>Step</th>
+              <th>Type</th>
+              <th>Captured At</th>
+              <th>Voice Note</th>
+              <th>Transcript</th>
+              <th>Bucket Path</th>
+            </tr>
+          </thead>
+          <tbody id="historyEvidenceTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastHost" class="toast-host" aria-live="polite"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="../supabase-init.js"></script>
+  <script type="module" src="./src/pages/tyre-history.js"></script>
+</body>
+</html>

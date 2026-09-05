@@ -1,0 +1,37 @@
+{
+  "name": "DynaHaul X Fitter",
+  "short_name": "DX Fitter",
+  "description": "Offline-first voice capture app for mine tyre fitter workflows. Capture fitment, pressure, inspection, and removal data with voice input.",
+  "id": "/fitter/",
+  "start_url": "/fitter/",
+  "scope": "/fitter/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
+  "background_color": "#e2ebf2",
+  "theme_color": "#0d314b",
+  "orientation": "portrait",
+  "categories": ["business", "utilities"],
+  "lang": "en",
+  "dir": "ltr",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

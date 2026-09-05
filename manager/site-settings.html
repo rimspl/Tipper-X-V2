@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Site Settings | Volvo Tipper Platform</title>
+    <link rel="stylesheet" href="../styles.css">
+    <style>
+        /* INJECTED PREMIUM HEADER STYLES */
+        .hdr-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background: rgba(0, 0, 0, 0.2);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .hdr-badges {
+            display: flex;
+            gap: 20px;
+        }
+
+        .hdr-badge {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 24px;
+            border-radius: 50px;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .hdr-badge:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .hdr-badge i {
+            color: #f8c100;
+            font-size: 1.2rem;
+        }
+
+        .badge-lbl {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 600;
+            display: block;
+            line-height: 1;
+            margin-bottom: 2px;
+        }
+
+        .badge-val {
+            font-size: 1rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .hdr-user {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .hdr-user-pill {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            border-radius: 50px;
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .hdr-btn {
+            padding: 10px 24px;
+            border-radius: 50px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            text-decoration: none;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .hdr-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .hdr-btn-setup {
+            background: #3182ce;
+            border: 1px solid #63b3ed;
+        }
+
+        .hdr-btn-logout {
+            background: #e53e3e;
+            border: 1px solid #fc8181;
+        }
+
+        .hdr-btn-dashboard {
+            background: #4a5568;
+            border: 1px solid #718096;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .page-header h2 {
+            margin: 0;
+            color: #1e293b;
+            font-weight: 700;
+        }
+
+        .page-header .subtitle {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .back-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--volvo-blue);
+            text-decoration: none;
+            font-weight: 600;
+            padding: 10px 15px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .back-link:hover {
+            background: #f1f5f9;
+        }
+
+        /* Settings Form */
+        .settings-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .settings-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .settings-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            border: 1px solid #f1f5f9;
+        }
+
+        .settings-card.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .settings-card h3 {
+            margin: 0 0 20px 0;
+            color: #1e293b;
+            font-size: 1.1rem;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .settings-card h3 span {
+            font-size: 1.2rem;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #4a5568;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            background: #f8fafc;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #3182ce;
+            background: white;
+        }
+
+        .form-group input:disabled {
+            background: #f1f5f9;
+            color: #94a3b8;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        /* Fleet Configuration - Card Based */
+        .fleet-config {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .fleet-config-header {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .fleet-config-header small {
+            font-weight: normal;
+            color: #666;
+            display: block;
+            margin-top: 4px;
+        }
+
+        #manufacturerCardsContainer {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .mfr-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            min-width: 200px;
+            flex: 1;
+            max-width: 280px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .mfr-card-header {
+            background: linear-gradient(135deg, #1b365d 0%, #2c5282 100%);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+        }
+
+        .mfr-card-header button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .mfr-card-header button:hover {
+            background: #e74c3c;
+        }
+
+        .mfr-card-body {
+            padding: 15px;
+        }
+
+        .mfr-card-body label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 0;
+            cursor: pointer;
+        }
+
+        .mfr-card-body input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        #addManufacturerCard {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            background: white;
+            transition: all 0.2s;
+        }
+
+        #addManufacturerCard:hover {
+            border-color: #3498db;
+            background: #f8fbff;
+        }
+
+        #manufacturerSelectorModal {
+            margin-top: 15px;
+            padding: 15px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        #selectedModelsSummary {
+            margin-top: 15px;
+            padding: 10px;
+            background: #e8f5e9;
+            border-radius: 6px;
+        }
+
+        /* Buttons */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #1b365d, #3182ce);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(49, 130, 206, 0.3);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #475569;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #1e293b;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: none;
+            z-index: 1000;
+        }
+
+        .toast.success {
+            background: #059669;
+        }
+
+        .toast.error {
+            background: #dc2626;
+        }
+
+        .toast.show {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app-header"></div>
+
+    <div class="container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div>
+                <h2>⚙️ Site Settings</h2>
+                <div class="subtitle">Edit company and site configuration</div>
+            </div>
+            <a href="index.html" class="hdr-btn hdr-btn-dashboard">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+
+        <!-- Settings Form -->
+        <div class="settings-container">
+            <!-- Company Details -->
+            <div class="settings-card">
+                <h3><span>🏢</span> Company Details</h3>
+
+                <div class="form-group">
+                    <label>Company / Client Name</label>
+                    <input type="text" id="customerName" placeholder="e.g., VOLVO Trucks Pvt Ltd">
+                </div>
+
+                <div class="form-group">
+                    <label>Site Name</label>
+                    <input type="text" id="siteName" placeholder="e.g., Mumbai Quarry Site">
+                </div>
+
+                <div class="form-group">
+                    <label>License Key</label>
+                    <input type="text" id="licenseKey" disabled>
+                </div>
+            </div>
+
+            <!-- Fleet Details -->
+            <div class="settings-card">
+                <h3><span>📊</span> Operational Details</h3>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Number of Tippers</label>
+                        <input type="number" id="fleetSize" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Annual Tyre Demand</label>
+                        <input type="number" id="annualDemand" min="0">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Tyre Purchase Price (₹)</label>
+                        <input type="number" id="tyrePrice" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Retread Cost (₹)</label>
+                        <input type="number" id="retreadCost" min="0" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Rate per KM (₹)</label>
+                        <input type="number" id="ratePerKm" min="0" step="0.01" placeholder="0.75">
+                        <small class="form-text text-muted">Revenue rate per kilometer for P&amp;L calculations.</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Target Tyre Life</label>
+                        <input type="number" id="targetLife" min="0">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Life Unit</label>
+                    <select id="lifeUnit">
+                        <option value="HMR">HMR (Hours)</option>
+                        <option value="KM">KM (Kilometers)</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Pressure Model Enabled</label>
+                        <select id="pressureModelEnabled">
+                            <option value="true">Enabled</option>
+                            <option value="false">Disabled</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Base Pressure (PSI)</label>
+                        <input type="number" id="pressureBasePsi" min="1" step="1" placeholder="120">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Temperature Zone (°C)</label>
+                        <select id="pressureTempZone">
+                            <option value="20">20</option>
+                            <option value="35">35</option>
+                            <option value="45">45</option>
+                            <option value="55">55</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Fuel Price (₹/L)</label>
+                        <input type="number" id="pressureFuelPrice" min="0" step="0.1" placeholder="90">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Fuel Efficiency (Km/L)</label>
+                        <input type="number" id="pressureFuelEfficiency" min="0.1" step="0.1" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Pressure Model Tyre Life (KM)</label>
+                        <input type="number" id="pressureTargetTyreLifeKm" min="0" step="1" placeholder="80000">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Daily KM / Truck</label>
+                        <input type="number" id="pressureDailyKm" min="0" step="1" placeholder="250">
+                    </div>
+                    <div class="form-group">
+                        <label>Tyres per Truck</label>
+                        <input type="number" id="pressureTiresPerTruck" min="1" step="1" placeholder="6">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Life Calibration Days</label>
+                        <input type="number" id="pressureCalibrationDays" min="1" step="1" placeholder="30">
+                    </div>
+                    <div class="form-group">
+                        <label>Max Interpolation Days</label>
+                        <input type="number" id="pressureMaxInterpolationDays" min="1" step="1" placeholder="7">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fleet Configuration - Full Width -->
+            <div class="settings-card full-width">
+                <h3><span>🚛</span> Fleet Configuration</h3>
+
+                <div class="fleet-config">
+                    <div class="fleet-config-header">
+                        Select Truck Manufacturers & Models
+                        <small>Choose all the tipper models used at your site</small>
+                    </div>
+
+                    <div id="manufacturerCardsContainer"></div>
+
+                    <div id="addManufacturerCard" onclick="showManufacturerSelector()">
+                        <span style="font-size: 1.5em; color: #3498db;">+</span>
+                        <div style="color: #666; font-size: 0.9em; margin-top: 5px;">Add Manufacturer</div>
+                    </div>
+
+                    <div id="manufacturerSelectorModal" style="display: none;">
+                        <label style="font-size: 0.9em; color: #666;">Select Manufacturer</label>
+                        <select id="newManufacturerSelect"
+                            style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; margin-top: 5px;">
+                            <option value="">-- Choose Manufacturer --</option>
+                        </select>
+                        <div style="display: flex; gap: 10px; margin-top: 10px;">
+                            <button type="button" onclick="addManufacturerCard()"
+                                style="flex: 1; padding: 10px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer;">✓
+                                Add</button>
+                            <button type="button" onclick="hideManufacturerSelector()"
+                                style="flex: 1; padding: 10px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer;">✗
+                                Cancel</button>
+                        </div>
+                    </div>
+
+                    <div id="selectedModelsSummary" style="display: none;">
+                        <strong style="color: #27ae60;">Selected Models:</strong>
+                        <span id="selectedModelsText" style="color: #2c3e50;"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Index -->
+            <div class="settings-card full-width">
+                <h3><span>📊</span> Reports Index</h3>
+                <p style="color: #64748b; font-size: 0.85rem; margin-bottom: 16px;">Choose which reports appear in the manager dashboard. Unchecked reports are hidden.</p>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px;">
+                    <label class="report-check" style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; cursor: pointer;">
+                        <input type="checkbox" class="report-toggle" value="fleetHealth" checked>
+                        <span style="font-size: 0.9rem; font-weight: 500; color: #1e293b;">Fleet Health Score</span>
+                    </label>
+                    <label class="report-check" style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; cursor: pointer;">
+                        <input type="checkbox" class="report-toggle" value="tyreLife" checked>
+                        <span style="font-size: 0.9rem; font-weight: 500; color: #1e293b;">Target vs Actual Tyre Life</span>
+                    </label>
+                    <label class="report-check" style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; cursor: pointer;">
+                        <input type="checkbox" class="report-toggle" value="rubberUtil" checked>
+                        <span style="font-size: 0.9rem; font-weight: 500; color: #1e293b;">Rubber Utilisation Analysis</span>
+                    </label>
+                    <label class="report-check" style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; cursor: pointer;">
+                        <input type="checkbox" class="report-toggle" value="brandWise" checked>
+                        <span style="font-size: 0.9rem; font-weight: 500; color: #1e293b;">Brand-wise Performance Summary</span>
+                    </label>
+                    <label class="report-check" style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; cursor: pointer;">
+                        <input type="checkbox" class="report-toggle" value="pressureLeakage" checked>
+                        <span style="font-size: 0.9rem; font-weight: 500; color: #1e293b;">Pressure Leakage Impact</span>
+                    </label>
+                    <label class="report-check" style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; cursor: pointer;">
+                        <input type="checkbox" class="report-toggle" value="ageDist" checked>
+                        <span style="font-size: 0.9rem; font-weight: 500; color: #1e293b;">Tyre Age Distribution</span>
+                    </label>
+                    <label class="report-check" style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; cursor: pointer;">
+                        <input type="checkbox" class="report-toggle" value="defectTrend" checked>
+                        <span style="font-size: 0.9rem; font-weight: 500; color: #1e293b;">Defect Trend by Position</span>
+                    </label>
+                    <label class="report-check" style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; cursor: pointer;">
+                        <input type="checkbox" class="report-toggle" value="removalReasons" checked>
+                        <span style="font-size: 0.9rem; font-weight: 500; color: #1e293b;">Removal Reasons</span>
+                    </label>
+                    <label class="report-check" style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; cursor: pointer;">
+                        <input type="checkbox" class="report-toggle" value="savings" checked>
+                        <span style="font-size: 0.9rem; font-weight: 500; color: #1e293b;">Savings Achieved</span>
+                    </label>
+                    <label class="report-check" style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; cursor: pointer;">
+                        <input type="checkbox" class="report-toggle" value="tyreRecords" checked>
+                        <span style="font-size: 0.9rem; font-weight: 500; color: #1e293b;">Tyre Records</span>
+                    </label>
+                    <label class="report-check" style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; cursor: pointer;">
+                        <input type="checkbox" class="report-toggle" value="inspectionRecords" checked>
+                        <span style="font-size: 0.9rem; font-weight: 500; color: #1e293b;">Inspection Records</span>
+                    </label>
+                    <label class="report-check" style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; cursor: pointer;">
+                        <input type="checkbox" class="report-toggle" value="pressureFuelCost" checked>
+                        <span style="font-size: 0.9rem; font-weight: 500; color: #1e293b;">Pressure vs Fuel Cost</span>
+                    </label>
+                    <label class="report-check" style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; cursor: pointer;">
+                        <input type="checkbox" class="report-toggle" value="pressureHeatmap" checked>
+                        <span style="font-size: 0.9rem; font-weight: 500; color: #1e293b;">Pressure Heatmap</span>
+                    </label>
+                    <label class="report-check" style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; cursor: pointer;">
+                        <input type="checkbox" class="report-toggle" value="rtdScrapping" checked>
+                        <span style="font-size: 0.9rem; font-weight: 500; color: #1e293b;">RTD Scrapping Recommendation</span>
+                    </label>
+                    <label class="report-check" style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; cursor: pointer;">
+                        <input type="checkbox" class="report-toggle" value="retreadEligible" checked>
+                        <span style="font-size: 0.9rem; font-weight: 500; color: #1e293b;">Retread Eligibility</span>
+                    </label>
+                    <label class="report-check" style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; cursor: pointer;">
+                        <input type="checkbox" class="report-toggle" value="brandCostPerKm" checked>
+                        <span style="font-size: 0.9rem; font-weight: 500; color: #1e293b;">Brand-wise Cost per KM</span>
+                    </label>
+                    <label class="report-check" style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; cursor: pointer;">
+                        <input type="checkbox" class="report-toggle" value="tyrePnL" checked>
+                        <span style="font-size: 0.9rem; font-weight: 500; color: #1e293b;">P&amp;L per Tyre</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="btn-group">
+            <button class="btn btn-secondary" onclick="loadSettings()">Reset</button>
+            <button class="btn btn-primary" onclick="saveSettings()">💾 Save Changes</button>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="../supabase-init.js"></script>
+    <script src="../src/lib/auth.js"></script>
+    <script src="../src/lib/config.js"></script>
+    <script src="../src/lib/session.js"></script>
+    <script src="../src/lib/navigation.js"></script>
+    <script src="../src/lib/header.js"></script>
+    <script src="../src/lib/database.js"></script>
+    <script src="../src/lib/toast.js"></script>
+    <script src="../src/lib/confirm.js"></script>
+    <script src="../src/lib/app-init.js"></script>
+
+    <script>
+        let currentSiteId = null;
+        let currentCustomerId = null;
+        let availableModels = [];
+        let addedManufacturers = new Set();
+        let selectedModels = [];
+
+        const IMMUTABLE_PRESSURE_FIELDS = [
+            { key: 'pressure_base_psi', fieldId: 'pressureBasePsi', label: 'Base Pressure (PSI)' },
+            { key: 'pressure_fuel_efficiency_kmpl', fieldId: 'pressureFuelEfficiency', label: 'Fuel Efficiency (Km/L)' },
+            { key: 'pressure_target_tyre_life_km', fieldId: 'pressureTargetTyreLifeKm', label: 'Pressure Model Tyre Life (KM)' }
+        ];
+
+        const immutablePressureState = {
+            pressure_base_psi: { locked: false, value: null },
+            pressure_fuel_efficiency_kmpl: { locked: false, value: null },
+            pressure_target_tyre_life_km: { locked: false, value: null }
+        };
+
+        function toFiniteNumber(value) {
+            const number = Number(value);
+            return Number.isFinite(number) ? number : null;
+        }
+
+        function captureImmutablePressureState(site) {
+            IMMUTABLE_PRESSURE_FIELDS.forEach(({ key }) => {
+                const rawValue = toFiniteNumber(site?.[key]);
+                const locked = rawValue !== null && rawValue > 0;
+                immutablePressureState[key] = {
+                    locked,
+                    value: rawValue
+                };
+            });
+        }
+
+        function applyImmutablePressureLocks() {
+            IMMUTABLE_PRESSURE_FIELDS.forEach(({ key, fieldId, label }) => {
+                const input = document.getElementById(fieldId);
+                if (!input) return;
+
+                const locked = Boolean(immutablePressureState[key]?.locked);
+                input.disabled = locked;
+                if (locked) {
+                    input.title = `${label} is locked after first save.`;
+                    input.setAttribute('data-locked', 'true');
+                } else {
+                    input.removeAttribute('title');
+                    input.removeAttribute('data-locked');
+                }
+            });
+        }
+
+        function resolveImmutablePressureValue(key, candidate, fallback = null) {
+            const state = immutablePressureState[key];
+            if (state?.locked) {
+                return state.value;
+            }
+
+            const numeric = toFiniteNumber(candidate);
+            return numeric !== null ? numeric : fallback;
+        }
+
+        function updateImmutableStateAfterSave(payload) {
+            IMMUTABLE_PRESSURE_FIELDS.forEach(({ key }) => {
+                const state = immutablePressureState[key] || { locked: false, value: null };
+                if (!state.locked) {
+                    const savedValue = toFiniteNumber(payload?.[key]);
+                    if (savedValue !== null && savedValue > 0) {
+                        state.locked = true;
+                        state.value = savedValue;
+                    }
+                }
+                immutablePressureState[key] = state;
+            });
+
+            applyImmutablePressureLocks();
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadAvailableModels();
+            await loadSettings();
+        });
+
+        async function loadAvailableModels() {
+            try {
+                availableModels = await CORE.fetchTipperModels();
+                populateManufacturerSelector();
+            } catch (err) {
+                console.error('Failed to load models:', err);
+            }
+        }
+
+        function populateManufacturerSelector() {
+            const select = document.getElementById('newManufacturerSelect');
+            const manufacturers = [...new Set(availableModels.map(m => m.manufacturer))];
+            select.innerHTML = '<option value="">-- Choose Manufacturer --</option>';
+            manufacturers.forEach(mfg => {
+                if (!addedManufacturers.has(mfg)) {
+                    select.innerHTML += `<option value="${mfg}">${mfg}</option>`;
+                }
+            });
+        }
+
+        function showManufacturerSelector() {
+            populateManufacturerSelector();
+            document.getElementById('manufacturerSelectorModal').style.display = 'block';
+            document.getElementById('addManufacturerCard').style.display = 'none';
+        }
+
+        function hideManufacturerSelector() {
+            document.getElementById('manufacturerSelectorModal').style.display = 'none';
+            document.getElementById('addManufacturerCard').style.display = 'block';
+        }
+
+        function addManufacturerCard() {
+            const mfg = document.getElementById('newManufacturerSelect').value;
+            if (!mfg) { alert('Please select a manufacturer'); return; }
+            if (addedManufacturers.has(mfg)) { alert('Already added'); return; }
+            createManufacturerCard(mfg, []);
+            hideManufacturerSelector();
+        }
+
+        function createManufacturerCard(manufacturer, preSelectedIds = []) {
+            addedManufacturers.add(manufacturer);
+            const container = document.getElementById('manufacturerCardsContainer');
+            const models = availableModels.filter(m => m.manufacturer === manufacturer);
+
+            const card = document.createElement('div');
+            card.className = 'mfr-card';
+            card.id = `card-${manufacturer.replace(/\s/g, '-')}`;
+
+            card.innerHTML = `
+                <div class="mfr-card-header">
+                    <span>🚛 ${manufacturer}</span>
+                    <button type="button" onclick="removeManufacturerCard('${manufacturer}')">✗</button>
+                </div>
+                <div class="mfr-card-body">
+                    ${models.map(m => {
+                const isChecked = preSelectedIds.includes(m.id);
+                if (isChecked && !selectedModels.includes(m.id)) selectedModels.push(m.id);
+                return `<label>
+                            <input type="checkbox" value="${m.id}" ${isChecked ? 'checked' : ''} onchange="toggleModelSelection('${m.id}')">
+                            <span>${m.model} <small style="color:#666;">(${m.no_of_tyres} tyres)</small></span>
+                        </label>`;
+            }).join('')}
+                </div>
+            `;
+            container.appendChild(card);
+            updateSelectedSummary();
+        }
+
+        function removeManufacturerCard(manufacturer) {
+            const card = document.getElementById(`card-${manufacturer.replace(/\s/g, '-')}`);
+            if (card) {
+                availableModels.filter(m => m.manufacturer === manufacturer).forEach(m => {
+                    const idx = selectedModels.indexOf(m.id);
+                    if (idx > -1) selectedModels.splice(idx, 1);
+                });
+                card.remove();
+                addedManufacturers.delete(manufacturer);
+                updateSelectedSummary();
+            }
+        }
+
+        function toggleModelSelection(modelId) {
+            const idx = selectedModels.indexOf(modelId);
+            if (idx > -1) selectedModels.splice(idx, 1);
+            else selectedModels.push(modelId);
+            updateSelectedSummary();
+        }
+
+        function updateSelectedSummary() {
+            const summary = document.getElementById('selectedModelsSummary');
+            const text = document.getElementById('selectedModelsText');
+            if (selectedModels.length === 0) {
+                summary.style.display = 'none';
+            } else {
+                const names = selectedModels.map(id => {
+                    const m = availableModels.find(x => x.id === id);
+                    return m ? `${m.manufacturer} ${m.model}` : '';
+                }).filter(Boolean);
+                text.textContent = names.join(', ');
+                summary.style.display = 'block';
+            }
+        }
+
+        async function loadSettings() {
+            try {
+                const session = JSON.parse((() => { let r = sessionStorage.getItem('rims_session'); return r; })() || '{}');
+                currentSiteId = session.siteId;
+                currentCustomerId = session.customerId;
+
+                if (!currentSiteId) { showToast('No site linked', 'error'); return; }
+
+                const { data: site, error } = await window.supabaseClient
+                    .from('sites')
+                    .select('*, customers(name), licenses(license_key)')
+                    .eq('id', currentSiteId)
+                    .single();
+
+                if (error || !site) { showToast('Failed to load', 'error'); return; }
+
+                captureImmutablePressureState(site);
+
+                // Fill basic fields
+                document.getElementById('customerName').value = site.customers?.name || '';
+                document.getElementById('siteName').value = site.site_name || '';
+                document.getElementById('licenseKey').value = site.licenses?.license_key || 'N/A';
+                document.getElementById('fleetSize').value = site.fleet_size || '';
+                document.getElementById('annualDemand').value = site.annual_demand || '';
+                document.getElementById('tyrePrice').value = site.tyre_price || '';
+                document.getElementById('retreadCost').value = site.retread_cost || '';
+                document.getElementById('ratePerKm').value = site.rate_per_km || '';
+                loadEnabledReports(site.enabled_reports);
+                document.getElementById('targetLife').value = site.target_tyre_life || '';
+                document.getElementById('lifeUnit').value = site.target_life_unit || 'HMR';
+                document.getElementById('pressureModelEnabled').value = site.pressure_model_enabled === false ? 'false' : 'true';
+                document.getElementById('pressureBasePsi').value = site.pressure_base_psi || 120;
+                document.getElementById('pressureTempZone').value = site.pressure_temp_zone || 45;
+                document.getElementById('pressureFuelPrice').value = site.pressure_fuel_price || 90;
+                document.getElementById('pressureFuelEfficiency').value = site.pressure_fuel_efficiency_kmpl || '';
+                document.getElementById('pressureTargetTyreLifeKm').value = site.pressure_target_tyre_life_km
+                    || ((site.target_life_unit || '').toUpperCase() === 'KM' ? (site.target_tyre_life || '') : '');
+                document.getElementById('pressureDailyKm').value = site.pressure_daily_km || 250;
+                document.getElementById('pressureTiresPerTruck').value = site.pressure_tires_per_truck || 6;
+                document.getElementById('pressureCalibrationDays').value = site.pressure_calibration_days || 30;
+                document.getElementById('pressureMaxInterpolationDays').value = site.pressure_max_interpolation_days || 7;
+                applyImmutablePressureLocks();
+
+                // Load saved model selections from localStorage
+                const localData = JSON.parse(localStorage.getItem('rims_master_data') || '{}');
+                let modelsToRestore = localData.selectedModels || [];
+                if (site.default_tipper_model_id && !modelsToRestore.includes(site.default_tipper_model_id)) {
+                    modelsToRestore.push(site.default_tipper_model_id);
+                }
+
+                // Clear existing cards
+                document.getElementById('manufacturerCardsContainer').innerHTML = '';
+                addedManufacturers.clear();
+                selectedModels = [];
+
+                // Group by manufacturer and create cards
+                const modelsByMfr = {};
+                modelsToRestore.forEach(modelId => {
+                    const model = availableModels.find(m => m.id === modelId);
+                    if (model) {
+                        if (!modelsByMfr[model.manufacturer]) modelsByMfr[model.manufacturer] = [];
+                        modelsByMfr[model.manufacturer].push(modelId);
+                    }
+                });
+                Object.keys(modelsByMfr).forEach(mfr => createManufacturerCard(mfr, modelsByMfr[mfr]));
+
+            } catch (err) {
+                console.error('Load Error:', err);
+                showToast('Error loading', 'error');
+            }
+        }
+
+        function loadEnabledReports(saved) {
+            if (!saved) return;
+            const vals = Array.isArray(saved) ? saved : [];
+            document.querySelectorAll('.report-toggle').forEach(cb => {
+                cb.checked = vals.includes(cb.value);
+            });
+        }
+
+        function getEnabledReports() {
+            return Array.from(document.querySelectorAll('.report-toggle:checked')).map(cb => cb.value);
+        }
+
+        async function saveSettings() {
+            try {
+                const customerName = document.getElementById('customerName').value.trim();
+                const siteName = document.getElementById('siteName').value.trim();
+                if (!customerName || !siteName) { showToast('Name required', 'error'); return; }
+
+                console.log('Save Settings - Starting...');
+                console.log('Current Site ID:', currentSiteId);
+                console.log('Current Customer ID:', currentCustomerId);
+
+                // Update customer
+                if (currentCustomerId) {
+                    const { error: custErr } = await window.supabaseClient.from('customers').update({ name: customerName }).eq('id', currentCustomerId);
+                    if (custErr) console.error('Customer Update Error:', custErr);
+                }
+
+                // Update site
+                const siteUpdate = {
+                    site_name: siteName,
+                    fleet_size: parseInt(document.getElementById('fleetSize').value) || null,
+                    annual_demand: parseInt(document.getElementById('annualDemand').value) || null,
+                    tyre_price: parseFloat(document.getElementById('tyrePrice').value) || null,
+                    retread_cost: parseFloat(document.getElementById('retreadCost').value) || null,
+                    rate_per_km: parseFloat(document.getElementById('ratePerKm').value) || null,
+                    target_tyre_life: parseFloat(document.getElementById('targetLife').value) || null,
+                    target_life_unit: document.getElementById('lifeUnit').value,
+                    pressure_model_enabled: document.getElementById('pressureModelEnabled').value !== 'false',
+                    pressure_base_psi: resolveImmutablePressureValue(
+                        'pressure_base_psi',
+                        parseFloat(document.getElementById('pressureBasePsi').value),
+                        120
+                    ),
+                    pressure_temp_zone: parseInt(document.getElementById('pressureTempZone').value) || 45,
+                    pressure_fuel_price: parseFloat(document.getElementById('pressureFuelPrice').value) || 90,
+                    pressure_fuel_efficiency_kmpl: resolveImmutablePressureValue(
+                        'pressure_fuel_efficiency_kmpl',
+                        parseFloat(document.getElementById('pressureFuelEfficiency').value),
+                        null
+                    ),
+                    pressure_target_tyre_life_km: resolveImmutablePressureValue(
+                        'pressure_target_tyre_life_km',
+                        parseFloat(document.getElementById('pressureTargetTyreLifeKm').value),
+                        null
+                    ),
+                    pressure_daily_km: parseFloat(document.getElementById('pressureDailyKm').value) || 250,
+                    pressure_tires_per_truck: parseInt(document.getElementById('pressureTiresPerTruck').value) || 6,
+                    pressure_calibration_days: parseInt(document.getElementById('pressureCalibrationDays').value) || 30,
+                    pressure_max_interpolation_days: parseInt(document.getElementById('pressureMaxInterpolationDays').value) || 7,
+                    default_tipper_model_id: selectedModels[0] || null,
+                    enabled_reports: getEnabledReports()
+                };
+
+                console.log('Site Update Payload:', siteUpdate);
+
+                let { data, error } = await window.supabaseClient
+                    .from('sites')
+                    .update(siteUpdate)
+                    .eq('id', currentSiteId)
+                    .select(); // Add .select() to see if rows were updated
+
+                const pressureColumnMissing = error
+                    && String(error.message || '').toLowerCase().includes('column')
+                    && String(error.message || '').toLowerCase().includes('pressure_');
+
+                const defaultModelColumnMissing = error
+                    && String(error.message || '').toLowerCase().includes('column')
+                    && String(error.message || '').toLowerCase().includes('default_tipper_model_id');
+
+                if (pressureColumnMissing || defaultModelColumnMissing) {
+                    const {
+                        pressure_model_enabled,
+                        pressure_base_psi,
+                        pressure_temp_zone,
+                        pressure_fuel_price,
+                        pressure_fuel_efficiency_kmpl,
+                        pressure_target_tyre_life_km,
+                        pressure_daily_km,
+                        pressure_tires_per_truck,
+                        pressure_calibration_days,
+                        pressure_max_interpolation_days,
+                        default_tipper_model_id,
+                        enabled_reports,
+                        ...legacySafeUpdate
+                    } = siteUpdate;
+
+                    ({ data, error } = await window.supabaseClient
+                        .from('sites')
+                        .update(legacySafeUpdate)
+                        .eq('id', currentSiteId)
+                        .select());
+                }
+
+                console.log('Update Response:', { data, error });
+
+                if (error) {
+                    console.error('Site Update Error:', error);
+                    throw error;
+                }
+
+                if (!data || data.length === 0) {
+                    console.warn('No rows updated! Check if site ID exists or RLS policy is blocking.');
+                    showToast('Update may have failed - check console', 'error');
+                    return;
+                }
+
+                if (!pressureColumnMissing) {
+                    updateImmutableStateAfterSave(siteUpdate);
+                }
+
+                // Update session
+                const session = JSON.parse(sessionStorage.getItem('rims_session') || '{}');
+                session.customerName = customerName;
+                session.siteName = siteName;
+                const sessionJson = JSON.stringify(session);
+                sessionStorage.setItem('rims_session', sessionJson);
+
+                // Update localStorage
+                const master = JSON.parse(localStorage.getItem('rims_master_data') || '{}');
+                master.customerName = customerName;
+                master.siteName = siteName;
+                master.selectedModels = selectedModels;
+                localStorage.setItem('rims_master_data', JSON.stringify(master));
+
+                showToast('Saved!', 'success');
+            } catch (err) {
+                console.error('Save Error:', err);
+                showToast('Save failed: ' + (err.message || 'Unknown error'), 'error');
+            }
+        }
+
+        function showToast(msg, type = '') {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = 'toast show ' + type;
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+    </script>
+</body>
+
+</html>

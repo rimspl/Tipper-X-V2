@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Operational Master Data | Volvo Tipper Platform</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container" style="max-width: 600px; margin-top: 50px;">
+        <div class="form-header-bar">
+            <h2>Operational Master Data</h2>
+            <div class="meta-info">One-time Setup</div>
+        </div>
+
+        <form id="masterDataForm"
+            style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <p style="margin-bottom: 20px; color: #666;">Please enter the key operational details for your site to
+                proceed.</p>
+
+            <div class="form-group">
+                <label>Customer Name</label>
+                <input type="text" name="customerName" required placeholder="e.g. ABC Mining Corp">
+            </div>
+
+            <div class="form-group">
+                <label>Mine Site Name</label>
+                <input type="text" name="siteName" required placeholder="e.g. Iron Ore Site A">
+            </div>
+
+            <div class="form-group">
+                <label>Number of Volvo Tippers</label>
+                <input type="number" name="tipperCount" required placeholder="e.g. 50">
+            </div>
+
+            <!-- DYNAMIC FLEET CONFIGURATION - CARD BASED -->
+            <div class="form-group"
+                style="background: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #eee;">
+                <label style="color: #2c3e50; font-weight: bold; margin-bottom: 15px; display: block;">
+                    🚛 Fleet Configuration
+                    <span style="font-weight: normal; font-size: 0.85em; color: #666; display: block; margin-top: 4px;">
+                        Select the truck manufacturers and models used at your site
+                    </span>
+                </label>
+
+                <!-- Manufacturer Cards Container -->
+                <div id="manufacturerCardsContainer"
+                    style="display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 15px;">
+                    <!-- Cards will be dynamically added here -->
+                </div>
+
+                <!-- Add Manufacturer Button -->
+                <div id="addManufacturerCard" onclick="showManufacturerSelector()" style="
+                    border: 2px dashed #ccc; 
+                    border-radius: 8px; 
+                    padding: 20px; 
+                    text-align: center; 
+                    cursor: pointer;
+                    background: white;
+                    transition: all 0.2s;
+                " onmouseover="this.style.borderColor='#3498db'; this.style.background='#f8fbff';"
+                    onmouseout="this.style.borderColor='#ccc'; this.style.background='white';">
+                    <span style="font-size: 1.5em; color: #3498db;">+</span>
+                    <div style="color: #666; font-size: 0.9em; margin-top: 5px;">Add Manufacturer</div>
+                </div>
+
+                <!-- Manufacturer Selector Modal (Hidden by default) -->
+                <div id="manufacturerSelectorModal"
+                    style="display: none; margin-top: 15px; padding: 15px; background: white; border: 1px solid #ddd; border-radius: 8px;">
+                    <label style="font-size: 0.9em; color: #666;">Select Manufacturer</label>
+                    <select id="newManufacturerSelect"
+                        style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; margin-top: 5px;">
+                        <option value="">-- Choose Manufacturer --</option>
+                    </select>
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <button type="button" onclick="addManufacturerCard()"
+                            style="flex: 1; padding: 10px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                            ✓ Add
+                        </button>
+                        <button type="button" onclick="hideManufacturerSelector()"
+                            style="flex: 1; padding: 10px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                            ✗ Cancel
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Selected Summary -->
+                <div id="selectedModelsSummary"
+                    style="margin-top: 15px; padding: 10px; background: #e8f5e9; border-radius: 6px; display: none;">
+                    <strong style="color: #27ae60;">Selected Models:</strong>
+                    <span id="selectedModelsText" style="color: #2c3e50;"></span>
+                </div>
+
+                <!-- Hidden inputs for form submission -->
+                <input type="hidden" name="selectedModels" id="hiddenSelectedModels">
+                <input type="hidden" name="primaryModelId" id="hiddenPrimaryModelId">
+            </div>
+
+            <!-- Current Tyre Life with Unit Selection -->
+            <div class="form-group">
+                <label>Current Tyre Life & Unit (KMR / HMR)</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" name="tyreLife" required placeholder="e.g. 3000" style="flex: 2;">
+                    <select name="lifeUnit" required
+                        style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="HMR">HMR</option>
+                        <option value="KMR">KMR</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Annual Tyre Purchase Quantity</label>
+                <input type="number" name="purchaseQty" required>
+            </div>
+
+
+            <div class="form-group">
+                <label>Tyre Purchase Price (INR)</label>
+                <div style="position: relative;">
+                    <span
+                        style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #666; font-size: 1.1em;">₹</span>
+                    <input type="number" name="price" required placeholder="Enter Amount in INR"
+                        style="padding-left: 35px; width: 100%;">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit" style="margin-top: 20px;">Save & Continue</button>
+        </form>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="supabase-init.js"></script>
+    <script src="src/lib/auth.js"></script>
+    <script src="src/lib/config.js"></script>
+    <script src="src/lib/session.js"></script>
+    <script src="src/lib/navigation.js"></script>
+    <script src="src/lib/header.js"></script>
+    <script src="src/lib/database.js"></script>
+    <script src="src/lib/toast.js"></script>
+    <script src="src/lib/confirm.js"></script>
+    <script src="src/lib/app-init.js"></script>
+
+    <script>
+        let availableModels = [];
+        let addedManufacturers = new Set();  // Track which manufacturers have been added
+        let selectedModels = [];  // Track selected model IDs
+
+        // Generate random invite code (XXXX-XXXX format)
+        function generateInviteCode() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // No confusing chars like 0/O, 1/I
+            let code = '';
+            for (let i = 0; i < 8; i++) {
+                if (i === 4) code += '-';
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return code;
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // 1. Load Models from Supabase
+                availableModels = await CORE.fetchTruckModels();
+
+                if (availableModels.length === 0) {
+                    document.getElementById('addManufacturerCard').innerHTML = '<span style="color: #e74c3c;">No truck models found in database</span>';
+                    return;
+                }
+
+                // 2. Populate manufacturer selector dropdown
+                populateManufacturerSelector();
+
+                // 3. CHECK IF USER HAS EXISTING DATA IN DATABASE
+                const session = JSON.parse(sessionStorage.getItem('rims_session') || '{}');
+                let savedData = {};
+
+                if (session.siteId && window.supabaseClient) {
+                    // Query site with customer join (using correct table/column names)
+                    const { data: siteData, error: siteError } = await window.supabaseClient
+                        .from('sites')
+                        .select('*, customers(*)')
+                        .eq('id', session.siteId)
+                        .single();
+
+                    if (siteData && !siteError) {
+                        savedData = {
+                            customerName: siteData.customers?.name || '',
+                            siteName: siteData.site_name || '',
+                            tipperCount: siteData.fleet_size || '',
+                            modelId: siteData.default_tipper_model_id || '',
+                            selectedModels: [], // Will be populated below
+                            tyreLife: siteData.target_tyre_life || '',
+                            lifeUnit: siteData.target_life_unit || 'HMR',
+                            purchaseQty: siteData.annual_demand || '',
+                            price: siteData.tyre_price || ''
+                        };
+
+                        // If we have a default model, add it to selectedModels
+                        if (siteData.default_tipper_model_id) {
+                            savedData.selectedModels = [siteData.default_tipper_model_id];
+                        }
+
+                        // Also check localStorage for additional selected models
+                        const localData = JSON.parse(localStorage.getItem('rims_master_data') || '{}');
+                        if (localData.selectedModels && Array.isArray(localData.selectedModels)) {
+                            // Merge with database primary model
+                            const merged = new Set([...(savedData.selectedModels || []), ...localData.selectedModels]);
+                            savedData.selectedModels = [...merged];
+                        }
+
+                        localStorage.setItem('rims_master_data', JSON.stringify(savedData));
+                        console.log('✅ Loaded existing setup data from database:', savedData);
+                    }
+                } else {
+                    savedData = JSON.parse(localStorage.getItem('rims_master_data') || '{}');
+                }
+
+                // 4. Fill form fields with saved data
+                document.querySelector('[name="customerName"]').value = savedData.customerName || '';
+                document.querySelector('[name="siteName"]').value = savedData.siteName || '';
+                document.querySelector('[name="tipperCount"]').value = savedData.tipperCount || '';
+                document.querySelector('[name="purchaseQty"]').value = savedData.purchaseQty || '';
+                document.querySelector('[name="price"]').value = savedData.price || '';
+                document.querySelector('[name="tyreLife"]').value = savedData.tyreLife || '';
+
+                // Set life unit dropdown
+                if (savedData.lifeUnit) {
+                    const unitSelect = document.querySelector('[name="lifeUnit"]');
+                    if (unitSelect) unitSelect.value = savedData.lifeUnit;
+                }
+
+                // 5. Restore saved model selections (support multiple)
+                const modelsToRestore = savedData.selectedModels || (savedData.modelId ? [savedData.modelId] : []);
+
+                if (modelsToRestore.length > 0) {
+                    // Group models by manufacturer
+                    const modelsByMfr = {};
+                    modelsToRestore.forEach(modelId => {
+                        const model = availableModels.find(m => m.id === modelId);
+                        if (model) {
+                            if (!modelsByMfr[model.manufacturer]) {
+                                modelsByMfr[model.manufacturer] = [];
+                            }
+                            modelsByMfr[model.manufacturer].push(modelId);
+                        }
+                    });
+
+                    // Create manufacturer cards for each saved selection
+                    Object.keys(modelsByMfr).forEach(mfr => {
+                        createManufacturerCard(mfr, modelsByMfr[mfr]);
+                    });
+                }
+
+            } catch (e) {
+                console.error(e);
+                document.getElementById('addManufacturerCard').innerHTML = '<span style="color: #e74c3c;">Error loading data</span>';
+            }
+        });
+
+        // Populate the manufacturer selector dropdown
+        function populateManufacturerSelector() {
+            const select = document.getElementById('newManufacturerSelect');
+            const manufacturers = [...new Set(availableModels.map(m => m.manufacturer))];
+
+            select.innerHTML = '<option value="">-- Choose Manufacturer --</option>';
+            manufacturers.forEach(mfg => {
+                if (!addedManufacturers.has(mfg)) {
+                    const opt = document.createElement('option');
+                    opt.value = mfg;
+                    opt.textContent = mfg;
+                    select.appendChild(opt);
+                }
+            });
+        }
+
+        // Show manufacturer selector modal
+        function showManufacturerSelector() {
+            populateManufacturerSelector();  // Refresh options
+            document.getElementById('manufacturerSelectorModal').style.display = 'block';
+            document.getElementById('addManufacturerCard').style.display = 'none';
+        }
+
+        // Hide manufacturer selector modal
+        function hideManufacturerSelector() {
+            document.getElementById('manufacturerSelectorModal').style.display = 'none';
+            document.getElementById('addManufacturerCard').style.display = 'block';
+        }
+
+        // Add a manufacturer card
+        function addManufacturerCard() {
+            const select = document.getElementById('newManufacturerSelect');
+            const mfg = select.value;
+
+            if (!mfg) {
+                alert('Please select a manufacturer');
+                return;
+            }
+
+            if (addedManufacturers.has(mfg)) {
+                alert('This manufacturer is already added');
+                return;
+            }
+
+            createManufacturerCard(mfg, []);
+            hideManufacturerSelector();
+        }
+
+        // Create a manufacturer card with model checkboxes
+        function createManufacturerCard(manufacturer, preSelectedModelIds = []) {
+            addedManufacturers.add(manufacturer);
+
+            const container = document.getElementById('manufacturerCardsContainer');
+            const models = availableModels.filter(m => m.manufacturer === manufacturer);
+
+            const card = document.createElement('div');
+            card.id = `card-${manufacturer.replace(/\s/g, '-')}`;
+            card.style.cssText = `
+                background: white;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                min-width: 200px;
+                flex: 1;
+                max-width: 280px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            `;
+
+            // Card header
+            const header = document.createElement('div');
+            header.style.cssText = `
+                background: linear-gradient(135deg, #1b365d 0%, #2c5282 100%);
+                color: white;
+                padding: 10px 15px;
+                border-radius: 8px 8px 0 0;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                font-weight: bold;
+            `;
+            header.innerHTML = `
+                <span>🚛 ${manufacturer}</span>
+                <button type="button" onclick="removeManufacturerCard('${manufacturer}')" 
+                    style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 2px 8px; border-radius: 4px; cursor: pointer;"
+                    onmouseover="this.style.background='#e74c3c'"
+                    onmouseout="this.style.background='rgba(255,255,255,0.2)'">✗</button>
+            `;
+            card.appendChild(header);
+
+            // Card body with model checkboxes
+            const body = document.createElement('div');
+            body.style.cssText = 'padding: 15px;';
+
+            models.forEach(model => {
+                const isChecked = preSelectedModelIds.includes(model.id);
+                if (isChecked) {
+                    selectedModels.push(model.id);
+                }
+
+                const label = document.createElement('label');
+                label.style.cssText = 'display: flex; align-items: center; gap: 8px; padding: 5px 0; cursor: pointer;';
+                label.innerHTML = `
+                    <input type="checkbox" value="${model.id}" 
+                        ${isChecked ? 'checked' : ''} 
+                        onchange="toggleModelSelection('${model.id}')"
+                        style="width: 18px; height: 18px; cursor: pointer;">
+                    <span style="font-size: 0.95em;">
+                        ${model.model}
+                        <span style="color: #666; font-size: 0.85em;">(${model.no_of_tyres} tyres)</span>
+                    </span>
+                `;
+                body.appendChild(label);
+            });
+
+            card.appendChild(body);
+            container.appendChild(card);
+
+            updateSelectedSummary();
+        }
+
+        // Remove a manufacturer card
+        function removeManufacturerCard(manufacturer) {
+            const cardId = `card-${manufacturer.replace(/\s/g, '-')}`;
+            const card = document.getElementById(cardId);
+            if (card) {
+                // Remove all models from this manufacturer from selection
+                const models = availableModels.filter(m => m.manufacturer === manufacturer);
+                models.forEach(m => {
+                    const idx = selectedModels.indexOf(m.id);
+                    if (idx > -1) selectedModels.splice(idx, 1);
+                });
+
+                card.remove();
+                addedManufacturers.delete(manufacturer);
+                updateSelectedSummary();
+            }
+        }
+
+        // Toggle model selection
+        function toggleModelSelection(modelId) {
+            const idx = selectedModels.indexOf(modelId);
+            if (idx > -1) {
+                selectedModels.splice(idx, 1);
+            } else {
+                selectedModels.push(modelId);
+            }
+            updateSelectedSummary();
+        }
+
+        // Update the selected models summary
+        function updateSelectedSummary() {
+            const summary = document.getElementById('selectedModelsSummary');
+            const text = document.getElementById('selectedModelsText');
+            const hiddenInput = document.getElementById('hiddenSelectedModels');
+            const primaryInput = document.getElementById('hiddenPrimaryModelId');
+
+            if (selectedModels.length === 0) {
+                summary.style.display = 'none';
+                hiddenInput.value = '';
+                primaryInput.value = '';
+            } else {
+                const modelNames = selectedModels.map(id => {
+                    const m = availableModels.find(x => x.id === id);
+                    return m ? `${m.manufacturer} ${m.model}` : '';
+                }).filter(Boolean);
+
+                text.textContent = modelNames.join(', ');
+                summary.style.display = 'block';
+                hiddenInput.value = JSON.stringify(selectedModels);
+                primaryInput.value = selectedModels[0];  // First selected model is primary
+            }
+        }
+
+        document.getElementById('masterDataForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const btn = e.target.querySelector('button[type="submit"]');
+
+            // 1. Get Form Data from new card-based UI
+            const primaryModelId = document.getElementById('hiddenPrimaryModelId').value;
+
+            if (selectedModels.length === 0) {
+                alert("Please select at least one Truck Model");
+                return;
+            }
+
+            // Get primary model details
+            const primaryModelObj = availableModels.find(m => m.id === primaryModelId);
+            const primaryManufacturer = primaryModelObj ? primaryModelObj.manufacturer : "Unknown";
+            const modelNameOnly = primaryModelObj ? primaryModelObj.model : "Unknown";
+
+            btn.textContent = "Fetching Configuration...";
+            btn.disabled = true;
+
+            try {
+                // 2. FETCH POSITIONS from Supabase
+                const positions = await CORE.fetchPositionsForModel(primaryModelId);
+
+                if (positions.length === 0) {
+                    throw new Error("No tyre positions found for this model in database.");
+                }
+
+                // 3. Save to Local Storage
+                const user = JSON.parse(localStorage.getItem('rims_user') || '{}');
+                const primaryTyreSize = primaryModelObj ? primaryModelObj.tyre_size : 'Unknown';
+
+                const masterData = {
+                    user: user.username,
+                    customerName: formData.get('customerName'),
+                    siteName: formData.get('siteName'),
+                    tipperCount: formData.get('tipperCount'),
+                    manufacturer: primaryManufacturer,
+                    truckModel: modelNameOnly,
+                    modelId: primaryModelId,
+                    selectedModels: selectedModels,  // All selected model IDs
+                    tyreSize: primaryTyreSize,
+                    tyreLife: formData.get('tyreLife'),
+                    lifeUnit: formData.get('lifeUnit'),
+                    purchaseQty: formData.get('purchaseQty'),
+                    price: formData.get('price'),
+                    positions: positions,
+                    timestamp: new Date().toISOString()
+                };
+
+                localStorage.setItem('rims_master_data', JSON.stringify(masterData));
+
+                // Update User Profile
+                user.client = masterData.customerName;
+                user.site = masterData.siteName;
+                localStorage.setItem('rims_user', JSON.stringify(user));
+
+                // 4. SUPABASE SYNC (Explicitly ensure Customer/Site exists AND save Master Details)
+                if (window.supabaseClient && navigator.onLine) {
+                    btn.textContent = "Syncing with Cloud...";
+
+                    // A. Relational Sync (Critical for other forms)
+                    const custId = await CORE.ensureCustomer(masterData.customerName);
+                    const siteId = await CORE.ensureSite(masterData.siteName, custId);
+
+                    // B. Generate or Get Invite Code for this site
+                    let inviteCode = null;
+                    const { data: siteCheck } = await window.supabaseClient
+                        .from('sites')
+                        .select('invite_code')
+                        .eq('id', siteId)
+                        .single();
+
+                    if (siteCheck && siteCheck.invite_code) {
+                        // Site already has a code
+                        inviteCode = siteCheck.invite_code;
+                    } else {
+                        // Generate new code (XXXX-XXXX format)
+                        inviteCode = generateInviteCode();
+                        await window.supabaseClient
+                            .from('sites')
+                            .update({ invite_code: inviteCode })
+                            .eq('id', siteId);
+                        console.log('✅ Generated invite code:', inviteCode);
+                    }
+
+                    // C. Update user_profiles to LINK this user to customer/site
+                    const session = JSON.parse(sessionStorage.getItem('rims_session') || '{}');
+                    if (session.uid) {
+                        const { error: profileError } = await window.supabaseClient
+                            .from('user_profiles')
+                            .update({
+                                customer_id: custId,
+                                site_id: siteId
+                            })
+                            .eq('id', session.uid);
+
+                        if (profileError) {
+                            console.error('Failed to update user_profiles:', profileError);
+                        } else {
+                            console.log('✅ User profile linked to customer and site');
+                        }
+                    }
+
+                    // D. Full Master Data Sync
+                    await CORE.saveOperationalMasterData(masterData);
+
+                    // E. Update session with IDs, names, and invite code
+                    session.customerId = custId;
+                    session.siteId = siteId;
+                    session.customerName = masterData.customerName;
+                    session.siteName = masterData.siteName;
+                    session.inviteCode = inviteCode;
+                    sessionStorage.setItem('rims_session', JSON.stringify(session));
+
+                    // Also save to localStorage for persistence
+                    const existingMaster = JSON.parse(localStorage.getItem('rims_master_data') || '{}');
+                    existingMaster.inviteCode = inviteCode;
+                    localStorage.setItem('rims_master_data', JSON.stringify(existingMaster));
+
+                    console.log("Synced to Cloud: CustomerID=" + custId + ", SiteID=" + siteId + ", Code=" + inviteCode);
+                }
+                // Get invite code from session for display
+                const finalSession = JSON.parse(sessionStorage.getItem('rims_session') || '{}');
+                const codeMsg = finalSession.inviteCode ? `\n\n📋 Your Company Code: ${finalSession.inviteCode}\nShare this code with your Manager to give them access.` : '';
+
+                alert(`Setup Complete!\nSystem configured for ${modelNameOnly} with ${positions.length} tyres.\n\nData Synced to Cloud.${codeMsg}`);
+                window.location.href = 'index.html';
+
+            } catch (err) {
+                alert("Error: " + err.message);
+                btn.textContent = "Save & Continue";
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>

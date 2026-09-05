@@ -1,0 +1,263 @@
+
+<style>
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+  .kpi { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 14px 16px; }
+  .kpi-label { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px; }
+  .kpi-value { font-size: 22px; font-weight: 500; color: var(--color-text-primary); }
+  .kpi-sub { font-size: 11px; color: var(--color-text-tertiary); margin-top: 2px; }
+  .zone-legend { display: flex; gap: 20px; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 8px; align-items: center; }
+  .zone-dot { width: 10px; height: 10px; border-radius: 2px; display: inline-block; margin-right: 4px; }
+  .chart-title { font-size: 15px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 4px; }
+  .chart-sub { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 14px; }
+  .slider-row { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--color-text-secondary); margin-top: 14px; }
+</style>
+
+<div style="padding: 4px 0;">
+  <p class="chart-title">Fleet tire pressure decay — cumulative cost impact</p>
+  <p class="chart-sub">1,200 tires · 200 trucks · 45°C zone · ₹90/L fuel · ₹5,00,000/tire</p>
+
+  <div class="kpi-grid" id="kpi-grid"></div>
+
+  <div class="zone-legend">
+    <span><span class="zone-dot" style="background:#C8E6C9;"></span>Safe (0–10% loss)</span>
+    <span><span class="zone-dot" style="background:#FFF9C4;"></span>Warning (10–20%)</span>
+    <span><span class="zone-dot" style="background:#FFCCBC;"></span>Critical (20%+)</span>
+    <span style="margin-left:auto; font-size:11px;">Adjust simulation below ↓</span>
+  </div>
+
+  <div style="position:relative; width:100%; height:380px;">
+    <canvas id="mainChart"></canvas>
+  </div>
+
+  <div class="slider-row">
+    <span>Daily pressure loss:</span>
+    <input type="range" id="lossSlider" min="0.5" max="3" step="0.5" value="1" style="flex:1">
+    <span id="lossVal" style="min-width:48px; font-weight:500; color:var(--color-text-primary);">1.0 PSI</span>
+    <span style="margin-left:16px;">Temperature zone:</span>
+    <select id="tempZone" style="font-size:12px; padding:4px 8px; border-radius:6px; border:0.5px solid var(--color-border-secondary); background:var(--color-background-secondary); color:var(--color-text-primary);">
+      <option value="20">20°C (dry season)</option>
+      <option value="35">35°C (moderate)</option>
+      <option value="45" selected>45°C (hot zone)</option>
+      <option value="55">55°C (extreme heat)</option>
+    </select>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const BASE_PRESSURE = 120;
+const DAYS = 30;
+const FUEL_EFF = 1.2;
+const FUEL_PRICE = 90;
+const TIRE_PRICE = 500000;
+const TARGET_KM = 80000;
+const TOTAL_TIRES = 1200;
+const TOTAL_TRUCKS = 200;
+const DAILY_KM = 250;
+
+const lifeMult = { 20:1.00, 35:1.15, 45:1.35, 55:1.60 };
+const rrMult   = { 20:1.00, 35:1.05, 45:1.10, 55:1.18 };
+
+function lifelossPct(pctLoss) {
+  if (pctLoss <= 10) return pctLoss * 1.0;
+  if (pctLoss <= 20) return 10*1.0 + (pctLoss-10)*1.5;
+  return 10*1.0 + 10*1.5 + (pctLoss-20)*2.0;
+}
+function rrIncrease(pctLoss) { return 0.25 * Math.pow(pctLoss, 1.3); }
+
+function simulate(dailyLoss, tempZone) {
+  const lm = lifeMult[tempZone], rm = rrMult[tempZone];
+  let cumFuel = 0, cumTire = 0;
+  const rows = [];
+  for (let d = 1; d <= DAYS; d++) {
+    const pressure = BASE_PRESSURE - dailyLoss * d;
+    const psiLoss = BASE_PRESSURE - pressure;
+    const pctLoss = (psiLoss / BASE_PRESSURE) * 100;
+    const dailyLifePct = lifelossPct(pctLoss) * lm / DAYS;
+    const dCrr = rrIncrease(pctLoss) * rm;
+    const fuelPctInc = dCrr * 0.60;
+    const baseFuel = DAILY_KM / FUEL_EFF;
+    const extraFuel = baseFuel * (fuelPctInc / 100);
+    const extraFuelCost = extraFuel * FUEL_PRICE * TOTAL_TRUCKS;
+    const tireValueLoss = (dailyLifePct / 100) * TIRE_PRICE * TOTAL_TIRES;
+    cumFuel += extraFuelCost;
+    cumTire += tireValueLoss;
+    rows.push({ d, pressure, pctLoss, cumFuel, cumTire, total: cumFuel + cumTire });
+  }
+  return rows;
+}
+
+let chart = null;
+
+function formatCrore(v) {
+  const cr = v / 1e7;
+  return cr >= 1 ? '₹' + cr.toFixed(2) + 'Cr' : '₹' + (v/1e5).toFixed(1) + 'L';
+}
+
+function render() {
+  const dailyLoss = parseFloat(document.getElementById('lossSlider').value);
+  const tempZone = parseInt(document.getElementById('tempZone').value);
+  document.getElementById('lossVal').textContent = dailyLoss.toFixed(1) + ' PSI';
+
+  const data = simulate(dailyLoss, tempZone);
+  const labels = data.map(r => 'D' + r.d);
+  const cumFuel = data.map(r => Math.round(r.cumFuel));
+  const cumTire = data.map(r => Math.round(r.cumTire));
+  const total   = data.map(r => Math.round(r.total));
+  const psiPct  = data.map(r => parseFloat(r.pctLoss.toFixed(1)));
+
+  const last = data[data.length - 1];
+  const warnDay = data.find(r => r.pctLoss >= 10);
+  const critDay = data.find(r => r.pctLoss >= 20);
+
+  // KPIs
+  document.getElementById('kpi-grid').innerHTML = `
+    <div class="kpi"><div class="kpi-label">Total 30-day loss</div><div class="kpi-value" style="color:#C62828">${formatCrore(last.total)}</div><div class="kpi-sub">Fuel + tire combined</div></div>
+    <div class="kpi"><div class="kpi-label">Fuel cost waste</div><div class="kpi-value" style="color:#E65100">${formatCrore(last.cumFuel)}</div><div class="kpi-sub">Rolling resistance penalty</div></div>
+    <div class="kpi"><div class="kpi-label">Tire asset erosion</div><div class="kpi-value" style="color:#4527A0">${formatCrore(last.cumTire)}</div><div class="kpi-sub">Accelerated wear loss</div></div>
+    <div class="kpi"><div class="kpi-label">Critical zone entry</div><div class="kpi-value" style="color:#BF360C">${critDay ? 'Day ' + critDay.d : 'None'}</div><div class="kpi-sub">&gt;20% pressure drop</div></div>
+  `;
+
+  // Zone background plugin
+  const zonePlugin = {
+    id: 'zones',
+    beforeDraw(chart) {
+      const { ctx, chartArea: ca, scales } = chart;
+      if (!ca) return;
+      const safeEnd   = scales.x.getPixelForValue(warnDay ? warnDay.d - 1 : 30);
+      const warnEnd   = critDay ? scales.x.getPixelForValue(critDay.d - 1) : ca.right;
+      ctx.save();
+      ctx.fillStyle = 'rgba(200,230,201,0.25)';
+      ctx.fillRect(ca.left, ca.top, safeEnd - ca.left, ca.height);
+      if (warnDay) {
+        ctx.fillStyle = 'rgba(255,249,196,0.35)';
+        ctx.fillRect(safeEnd, ca.top, warnEnd - safeEnd, ca.height);
+      }
+      if (critDay) {
+        ctx.fillStyle = 'rgba(255,204,188,0.30)';
+        ctx.fillRect(warnEnd, ca.top, ca.right - warnEnd, ca.height);
+      }
+      ctx.restore();
+    }
+  };
+
+  const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
+  const gridColor = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)';
+  const tickColor = isDark ? '#9c9a92' : '#73726c';
+
+  if (chart) chart.destroy();
+  chart = new Chart(document.getElementById('mainChart'), {
+    type: 'bar',
+    plugins: [zonePlugin],
+    data: {
+      labels,
+      datasets: [
+        {
+          type: 'bar',
+          label: 'Fuel cost waste (₹)',
+          data: cumFuel,
+          backgroundColor: 'rgba(230,81,0,0.55)',
+          borderColor: 'rgba(230,81,0,0)',
+          yAxisID: 'y',
+          order: 3,
+          borderRadius: 2,
+        },
+        {
+          type: 'bar',
+          label: 'Tire asset erosion (₹)',
+          data: cumTire,
+          backgroundColor: 'rgba(69,39,160,0.5)',
+          borderColor: 'rgba(69,39,160,0)',
+          yAxisID: 'y',
+          order: 3,
+          borderRadius: 2,
+        },
+        {
+          type: 'line',
+          label: 'Total cumulative loss (₹)',
+          data: total,
+          borderColor: '#C62828',
+          backgroundColor: 'rgba(198,40,40,0.08)',
+          fill: false,
+          borderWidth: 2.5,
+          pointRadius: 0,
+          pointHoverRadius: 5,
+          yAxisID: 'y',
+          order: 1,
+          tension: 0.4,
+        },
+        {
+          type: 'line',
+          label: '% Pressure loss',
+          data: psiPct,
+          borderColor: '#0277BD',
+          backgroundColor: 'rgba(2,119,189,0.0)',
+          fill: false,
+          borderWidth: 1.5,
+          borderDash: [5, 3],
+          pointRadius: 0,
+          pointHoverRadius: 4,
+          yAxisID: 'y2',
+          order: 2,
+          tension: 0.3,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label(ctx) {
+              if (ctx.datasetIndex === 3) return ' Pressure loss: ' + ctx.parsed.y.toFixed(1) + '%';
+              return ' ' + ctx.dataset.label.split('(')[0].trim() + ': ₹' + ctx.parsed.y.toLocaleString('en-IN');
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          stacked: true,
+          grid: { color: gridColor },
+          ticks: { color: tickColor, font: { size: 11 }, maxTicksLimit: 10, autoSkip: true }
+        },
+        y: {
+          stacked: true,
+          position: 'left',
+          grid: { color: gridColor },
+          ticks: {
+            color: tickColor, font: { size: 11 },
+            callback: v => v >= 1e7 ? '₹'+(v/1e7).toFixed(1)+'Cr' : '₹'+(v/1e5).toFixed(0)+'L'
+          },
+          title: { display: true, text: 'Cumulative cost loss (₹)', color: tickColor, font: { size: 11 } }
+        },
+        y2: {
+          position: 'right',
+          grid: { drawOnChartArea: false },
+          ticks: { color: '#0277BD', font: { size: 11 }, callback: v => v.toFixed(0)+'%' },
+          title: { display: true, text: '% pressure loss', color: '#0277BD', font: { size: 11 } },
+          min: 0,
+          max: Math.max(...psiPct) * 1.25
+        }
+      }
+    }
+  });
+}
+
+document.getElementById('lossSlider').addEventListener('input', render);
+document.getElementById('tempZone').addEventListener('change', render);
+render();
+
+// Custom legend
+const legendHtml = `
+<div style="display:flex;gap:20px;flex-wrap:wrap;font-size:12px;color:var(--color-text-secondary);margin-top:10px;">
+  <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;background:rgba(230,81,0,0.6);border-radius:2px;display:inline-block"></span>Fuel waste</span>
+  <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;background:rgba(69,39,160,0.55);border-radius:2px;display:inline-block"></span>Tire erosion</span>
+  <span style="display:flex;align-items:center;gap:5px"><span style="width:24px;height:2.5px;background:#C62828;display:inline-block"></span>Total loss</span>
+  <span style="display:flex;align-items:center;gap:5px"><span style="width:24px;height:2px;background:#0277BD;display:inline-block;border-top:2px dashed #0277BD"></span>% Pressure drop</span>
+</div>`;
+document.currentScript.insertAdjacentHTML('afterend', legendHtml);
+</script>

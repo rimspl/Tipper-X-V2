@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DynaHaul X</title>
+  <meta name="theme-color" content="#1f242b">
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: linear-gradient(160deg, #161a1f 0%, #20262d 52%, #161b22 100%);
+      color: #eef2f5;
+    }
+    .box {
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid rgba(218, 165, 32, 0.4);
+      background: rgba(33, 39, 48, 0.9);
+      text-align: center;
+      width: min(420px, calc(100% - 32px));
+    }
+    a {
+      color: #efd28a;
+    }
+  </style>
+  <script>
+    (function routeBySession() {
+      function resolveUserType(session) {
+        const explicit = String(session?.userType || '').trim().toLowerCase();
+        if (explicit === 'manager' || explicit === 'fitter') {
+          return explicit;
+        }
+
+        const legacyRole = String(session?.role || '').trim().toLowerCase();
+        return legacyRole === 'manager' ? 'manager' : 'fitter';
+      }
+
+      const fallback = './setup.html';
+      const raw = sessionStorage.getItem('rims_session');
+      if (!raw) {
+        window.location.replace(fallback);
+        return;
+      }
+
+      try {
+        const session = JSON.parse(raw);
+        if (!session || !session.uid) {
+          sessionStorage.removeItem('rims_session');
+          window.location.replace(fallback);
+          return;
+        }
+
+        const isManager = resolveUserType(session) === 'manager';
+        window.location.replace(isManager ? './manager/index.html' : './fitter/index.html');
+      } catch (error) {
+        sessionStorage.removeItem('rims_session');
+        window.location.replace(fallback);
+      }
+    })();
+  </script>
+</head>
+<body>
+  <div class="box">
+    <p>Routing to your workspace...</p>
+    <p>If you are not redirected, <a href="./setup.html">open activation</a>.</p>
+  </div>
+</body>
+</html>

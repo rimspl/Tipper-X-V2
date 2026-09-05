@@ -1,0 +1,603 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#1f242b">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>DynaHaul X Login</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <style>
+    :root {
+      --gold: #daa520;
+      --gold-soft: #efd28a;
+      --text: #f2f4f6;
+      --muted: #b7c0c8;
+      --line: rgba(218, 165, 32, 0.34);
+      --danger-bg: #45282f;
+      --danger: #ffbec7;
+      --ok-bg: #1f4232;
+      --ok: #ccf7de;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 16px;
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 20% 10%, rgba(218, 165, 32, 0.18), transparent 45%),
+        radial-gradient(circle at 80% 18%, rgba(113, 126, 140, 0.14), transparent 44%),
+        linear-gradient(160deg, #161a1f 0%, #20262d 52%, #161b22 100%);
+    }
+
+    .card {
+      width: min(460px, 100%);
+      border-radius: 18px;
+      border: 1px solid rgba(218, 165, 32, 0.42);
+      background:
+        linear-gradient(180deg, rgba(218, 165, 32, 0.12), transparent 44%),
+        linear-gradient(160deg, #212730, #1a2028 70%, #141922 100%);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.09),
+        0 18px 34px rgba(5, 9, 14, 0.42);
+      padding: 22px;
+    }
+
+    .head {
+      text-align: center;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.55rem;
+      color: #f4eddc;
+      letter-spacing: 0.02em;
+    }
+
+    .sub {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .msg {
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      font-size: 0.9rem;
+      display: none;
+    }
+
+    .msg.error {
+      background: var(--danger-bg);
+      color: var(--danger);
+      border: 1px solid rgba(255, 170, 188, 0.35);
+    }
+
+    .msg.ok {
+      background: var(--ok-bg);
+      color: var(--ok);
+      border: 1px solid rgba(204, 247, 222, 0.35);
+    }
+
+    form {
+      display: grid;
+      gap: 12px;
+    }
+
+    .row {
+      display: grid;
+      gap: 6px;
+    }
+
+    label {
+      font-size: 0.86rem;
+      color: #d8e0e7;
+      font-weight: 600;
+    }
+
+    input {
+      width: 100%;
+      min-height: 46px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: linear-gradient(165deg, #1f252d, #171c24);
+      color: #f5e7c5;
+      padding: 0 12px;
+      font-size: 0.98rem;
+      font-weight: 600;
+    }
+
+    input::placeholder {
+      color: #8f9ba4;
+    }
+
+    input:focus {
+      outline: 2px solid rgba(218, 165, 32, 0.32);
+      border-color: rgba(218, 165, 32, 0.62);
+    }
+
+    .btn {
+      min-height: 48px;
+      border-radius: 12px;
+      border: 1px solid rgba(218, 165, 32, 0.72);
+      background: linear-gradient(138deg, #b78616, #daa520);
+      color: #211c14;
+      font-size: 0.98rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      box-shadow: 0 12px 22px rgba(80, 56, 18, 0.32);
+    }
+
+    .btn:disabled {
+      opacity: 0.62;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .otp-row {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .otp-row input {
+      text-align: center;
+      font-size: 1.2rem;
+      padding: 0;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .ghost {
+      border: 1px solid var(--line);
+      background: linear-gradient(160deg, #2c323a, #1e242c);
+      color: var(--gold-soft);
+      border-radius: 10px;
+      min-height: 40px;
+      padding: 0 12px;
+      font-size: 0.86rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .loader {
+      display: none;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .loader.active {
+      display: block;
+    }
+
+  </style>
+</head>
+<body>
+  <main class="card">
+    <header class="head">
+      <h1>DynaHaul X Login</h1>
+      <p class="sub">Single sign-in for fitter and manager</p>
+    </header>
+
+    <div id="errorMsg" class="msg error"></div>
+    <div id="okMsg" class="msg ok"></div>
+
+    <section id="loginScreen">
+      <form id="loginForm" novalidate>
+        <div class="row">
+          <label for="emailInput">Email</label>
+          <input id="emailInput" type="email" required autocomplete="email" placeholder="name@company.com">
+        </div>
+        <div class="row">
+          <label for="passwordInput">Password</label>
+          <input id="passwordInput" type="password" required autocomplete="current-password" placeholder="Enter password">
+        </div>
+        <button id="loginBtn" class="btn" type="submit">Continue</button>
+        <p id="loginLoader" class="loader">Validating credentials...</p>
+      </form>
+    </section>
+
+    <section id="otpScreen" class="hidden">
+      <form id="otpForm" novalidate>
+        <div class="row">
+          <label>Enter 6-digit OTP</label>
+          <div class="otp-row">
+            <input type="text" maxlength="1" inputmode="numeric" data-otp="0">
+            <input type="text" maxlength="1" inputmode="numeric" data-otp="1">
+            <input type="text" maxlength="1" inputmode="numeric" data-otp="2">
+            <input type="text" maxlength="1" inputmode="numeric" data-otp="3">
+            <input type="text" maxlength="1" inputmode="numeric" data-otp="4">
+            <input type="text" maxlength="1" inputmode="numeric" data-otp="5">
+          </div>
+        </div>
+
+        <button id="otpBtn" class="btn" type="submit">Verify And Login</button>
+        <p id="otpLoader" class="loader">Verifying OTP...</p>
+
+        <div class="actions">
+          <button id="resendBtn" class="ghost" type="button">Resend OTP</button>
+          <button id="backBtn" class="ghost" type="button">Back</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <script src="../email-otp-service.js"></script>
+  <script type="module" src="./src/lib/pwa-bootstrap.js"></script>
+  <script>
+    const AUTH_TIMEOUT_MS = 20000;
+
+    const state = {
+      pendingSession: null
+    };
+
+    const refs = {
+      loginScreen: document.getElementById('loginScreen'),
+      otpScreen: document.getElementById('otpScreen'),
+      loginForm: document.getElementById('loginForm'),
+      otpForm: document.getElementById('otpForm'),
+      emailInput: document.getElementById('emailInput'),
+      passwordInput: document.getElementById('passwordInput'),
+      loginBtn: document.getElementById('loginBtn'),
+      otpBtn: document.getElementById('otpBtn'),
+      loginLoader: document.getElementById('loginLoader'),
+      otpLoader: document.getElementById('otpLoader'),
+      resendBtn: document.getElementById('resendBtn'),
+      backBtn: document.getElementById('backBtn'),
+      errorMsg: document.getElementById('errorMsg'),
+      okMsg: document.getElementById('okMsg'),
+      otpInputs: Array.from(document.querySelectorAll('[data-otp]'))
+    };
+
+    init();
+
+    function resolveUserType(session = {}) {
+      const explicit = String(session.userType || '').trim().toLowerCase();
+      if (explicit === 'manager' || explicit === 'fitter') {
+        return explicit;
+      }
+
+      const legacyRole = String(session.role || '').trim().toLowerCase();
+      return legacyRole === 'manager' ? 'manager' : 'fitter';
+    }
+
+    function init() {
+      redirectIfAlreadyLoggedIn();
+      bindOtpInputs();
+      refs.loginForm.addEventListener('submit', handleLoginSubmit);
+      refs.otpForm.addEventListener('submit', handleOtpSubmit);
+      refs.resendBtn.addEventListener('click', resendOtp);
+      refs.backBtn.addEventListener('click', backToLogin);
+    }
+
+    function readSessionRaw() {
+      let raw = sessionStorage.getItem('rims_session');
+      if (!raw) { raw = localStorage.getItem('rims_session'); if (raw) sessionStorage.setItem('rims_session', raw); }
+      return raw;
+    }
+    function writeSession(data) {
+      const json = JSON.stringify(data);
+      sessionStorage.setItem('rims_session', json);
+      const userType = (data.userType || data.role || '').toLowerCase();
+      if (userType === 'fitter') {
+        localStorage.setItem('rims_session', json);
+      } else {
+        localStorage.removeItem('rims_session');
+      }
+    }
+    function clearSession() {
+      sessionStorage.removeItem('rims_session');
+      localStorage.removeItem('rims_session');
+    }
+
+    function redirectIfAlreadyLoggedIn() {
+      const raw = readSessionRaw();
+      if (!raw) {
+        return;
+      }
+
+      try {
+        const session = JSON.parse(raw);
+        if (!session?.uid) {
+          return;
+        }
+        const expiresAt = Number(session.expiresAt);
+        if (Number.isFinite(expiresAt) && expiresAt > 0 && Date.now() > expiresAt) {
+          clearSession();
+          return;
+        }
+        if (!session.expiresAt) {
+          session.expiresAt = Date.now() + (24 * 60 * 60 * 1000);
+          writeSession(session);
+        }
+        const isManager = resolveUserType(session) === 'manager';
+        window.location.replace(isManager ? '../manager/index.html' : './index.html');
+      } catch (error) {
+        console.warn('Invalid existing session ignored:', error);
+      }
+    }
+
+    function showMessage(kind, text) {
+      refs.errorMsg.style.display = 'none';
+      refs.okMsg.style.display = 'none';
+      if (!text) {
+        return;
+      }
+
+      if (kind === 'error') {
+        refs.errorMsg.textContent = text;
+        refs.errorMsg.style.display = 'block';
+        return;
+      }
+
+      refs.okMsg.textContent = text;
+      refs.okMsg.style.display = 'block';
+    }
+
+    function setBusy(mode, busy) {
+      if (mode === 'login') {
+        refs.loginBtn.disabled = busy;
+        refs.loginLoader.classList.toggle('active', busy);
+        return;
+      }
+      refs.otpBtn.disabled = busy;
+      refs.resendBtn.disabled = busy;
+      refs.otpLoader.classList.toggle('active', busy);
+    }
+
+    function bindOtpInputs() {
+      refs.otpInputs.forEach((input, index) => {
+        input.addEventListener('input', (event) => {
+          const value = String(event.target.value || '').replace(/\D/g, '').slice(0, 1);
+          event.target.value = value;
+          if (value && index < refs.otpInputs.length - 1) {
+            refs.otpInputs[index + 1].focus();
+          }
+        });
+
+        input.addEventListener('keydown', (event) => {
+          if (event.key === 'Backspace' && !event.target.value && index > 0) {
+            refs.otpInputs[index - 1].focus();
+          }
+        });
+
+        input.addEventListener('paste', (event) => {
+          event.preventDefault();
+          const value = String(event.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, 6);
+          value.split('').forEach((digit, digitIndex) => {
+            if (refs.otpInputs[digitIndex]) {
+              refs.otpInputs[digitIndex].value = digit;
+            }
+          });
+          const focusIndex = Math.min(value.length, refs.otpInputs.length - 1);
+          refs.otpInputs[focusIndex]?.focus();
+        });
+      });
+    }
+
+    function otpValue() {
+      return refs.otpInputs.map((input) => input.value).join('').trim();
+    }
+
+    function backToLogin() {
+      state.pendingSession = null;
+      refs.loginScreen.classList.remove('hidden');
+      refs.otpScreen.classList.add('hidden');
+      showMessage('', '');
+    }
+
+    function openOtpScreen() {
+      refs.loginScreen.classList.add('hidden');
+      refs.otpScreen.classList.remove('hidden');
+      refs.otpInputs.forEach((input) => {
+        input.value = '';
+      });
+      refs.otpInputs[0]?.focus();
+    }
+
+    async function fetchWithTimeout(url, options = {}, timeoutMs = AUTH_TIMEOUT_MS) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+      try {
+        return await fetch(url, {
+          ...options,
+          signal: controller.signal
+        });
+      } finally {
+        clearTimeout(timeoutId);
+      }
+    }
+
+    function getAuthError(error) {
+      const message = String(error?.message || 'Login failed').trim();
+      const lower = message.toLowerCase();
+      const isClientFetchError = error instanceof TypeError || String(error?.name || '').toLowerCase() === 'typeerror';
+
+      if (lower.includes('timed out')) {
+        return 'Supabase auth request timed out. Please retry.';
+      }
+
+      if (
+        isClientFetchError && (
+        lower.includes('failed to fetch')
+        || lower.includes('fetch failed')
+        || lower.includes('networkerror')
+        || lower.includes('network request failed')
+        )
+      ) {
+        return 'Unable to reach auth service. Check internet/VPN and retry.';
+      }
+
+      return message;
+    }
+
+    async function handleLoginSubmit(event) {
+      event.preventDefault();
+      showMessage('', '');
+      setBusy('login', true);
+
+      const email = refs.emailInput.value.trim().toLowerCase();
+      const password = refs.passwordInput.value;
+
+      try {
+        const response = await fetchWithTimeout(`${window.location.origin}/api/send-otp`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'auth_login',
+            email,
+            password
+          })
+        });
+
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok || !payload?.success || !payload?.session) {
+          throw new Error(payload?.message || 'Authentication failed');
+        }
+
+        state.pendingSession = payload.session;
+
+        if (payload.session.otpBypassed) {
+          const sessionData = {
+            ...payload.session,
+            lastActivity: Date.now(),
+            expiresAt: Date.now() + (24 * 60 * 60 * 1000)
+          };
+          writeSession(sessionData);
+          const existingMaster = JSON.parse(localStorage.getItem('rims_master_data') || '{}');
+          existingMaster.customerName = sessionData.customerName || existingMaster.customerName || '';
+          existingMaster.siteName = sessionData.siteName || existingMaster.siteName || '';
+          localStorage.setItem('rims_master_data', JSON.stringify(existingMaster));
+          if (resolveUserType(sessionData) === 'manager') {
+            window.location.href = '../manager/index.html';
+            return;
+          }
+          window.location.href = './index.html';
+          return;
+        }
+
+        let otpResult = null;
+        try {
+          otpResult = await window.EmailOTP.sendOTP(email);
+        } catch (otpError) {
+          otpResult = {
+            success: false,
+            message: getAuthError(otpError)
+          };
+        }
+
+        openOtpScreen();
+        if (otpResult?.success) {
+          showMessage('ok', otpResult.message || 'OTP sent to your email.');
+        } else {
+          showMessage(
+            'error',
+            otpResult?.message || 'Unable to send OTP right now. If you already received one, enter it. Otherwise tap Resend OTP.'
+          );
+        }
+      } catch (error) {
+        console.error('Login failed:', error);
+        showMessage('error', getAuthError(error));
+      } finally {
+        setBusy('login', false);
+      }
+    }
+
+    async function handleOtpSubmit(event) {
+      event.preventDefault();
+      showMessage('', '');
+
+      if (!state.pendingSession?.uid || !state.pendingSession?.email) {
+        showMessage('error', 'Session expired. Please login again.');
+        backToLogin();
+        return;
+      }
+
+      const otp = otpValue();
+      if (otp.length !== 6) {
+        showMessage('error', 'Please enter complete 6-digit OTP.');
+        return;
+      }
+
+      setBusy('otp', true);
+
+      try {
+        const verify = await window.EmailOTP.verifyOTP(state.pendingSession.email, otp);
+        if (!verify.success) {
+          throw new Error(verify.message || 'Invalid OTP');
+        }
+
+        const sessionData = {
+          ...state.pendingSession,
+          lastActivity: Date.now(),
+          expiresAt: Date.now() + (24 * 60 * 60 * 1000)
+        };
+
+        writeSession(sessionData);
+
+        const existingMaster = JSON.parse(localStorage.getItem('rims_master_data') || '{}');
+        existingMaster.customerName = sessionData.customerName || existingMaster.customerName || '';
+        existingMaster.siteName = sessionData.siteName || existingMaster.siteName || '';
+        localStorage.setItem('rims_master_data', JSON.stringify(existingMaster));
+
+        if (resolveUserType(sessionData) === 'manager') {
+          window.location.href = '../manager/index.html';
+          return;
+        }
+
+        window.location.href = './index.html';
+      } catch (error) {
+        console.error('OTP verify failed:', error);
+        showMessage('error', String(error?.message || 'OTP verification failed'));
+      } finally {
+        setBusy('otp', false);
+      }
+    }
+
+    async function resendOtp() {
+      if (!state.pendingSession?.email) {
+        showMessage('error', 'No login session found. Please login again.');
+        return;
+      }
+
+      refs.resendBtn.disabled = true;
+      try {
+        const result = await window.EmailOTP.sendOTP(state.pendingSession.email);
+        if (!result.success) {
+          showMessage('error', result.message || 'Failed to resend OTP.');
+          return;
+        }
+        showMessage('ok', 'OTP sent successfully.');
+      } catch (error) {
+        console.error('Resend OTP failed:', error);
+        showMessage('error', 'Failed to resend OTP.');
+      } finally {
+        refs.resendBtn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+{
+  "name": "dynahaul-x-v2",
+  "version": "2.0.0",
+  "type": "module",
+  "description": "DynaHaul X v2 — Tyre fleet management system",
+  "scripts": {
+    "start": "node server.js",
+    "local": "node local.js",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {
+    "@grpc/grpc-js": "^1.12.0",
+    "@grpc/proto-loader": "^0.7.13",
+    "@supabase/supabase-js": "^2.45.0",
+    "dotenv": "^16.4.0",
+    "express": "^4.21.0",
+    "localtunnel": "^2.0.2",
+    "pg": "^8.22.0"
+  },
+  "devDependencies": {
+    "xlsx": "^0.18.5"
+  }
+}

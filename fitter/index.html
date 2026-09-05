@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#1f242b">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Fitter Voice Dashboard</title>
+  <link rel="preload" href="./src/assets/fonts/barlow-600-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="./src/assets/fonts/rajdhani-700-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="./src/styles/app.css">
+</head>
+<body>
+  <main class="voice-app">
+    <section id="dashboardView" class="dashboard-view" aria-label="Primary modules">
+      <header class="steel-topbar dashboard-bar">
+        <div class="topbar-title-wrap">
+          <span class="topbar-title-icon">
+            <img src="./src/assets/icons/modules/default.svg" alt="Fitter" class="topbar-brand-icon" draggable="false">
+          </span>
+          <h1 class="topbar-title-text">Fitter Dashboard</h1>
+        </div>
+
+        <div class="dashboard-meta" aria-label="Logged in details">
+          <div class="dashboard-meta-text">
+            <span id="dashboardCompanyName" class="dashboard-company">Company</span>
+            <span id="dashboardUserName" class="dashboard-user">User</span>
+          </div>
+          <button id="dashboardLogoutBtn" type="button" class="steel-text-btn" aria-label="Logout">Logout</button>
+        </div>
+      </header>
+      <div id="moduleGrid" class="module-grid"></div>
+      <section id="micPermissionBanner" class="dashboard-mic-banner hidden" aria-live="polite">
+        <div class="dashboard-mic-copy">
+          <strong>Microphone access required</strong>
+          <span id="micPermissionText">Enable microphone inside DX Fitter to record voice entries.</span>
+        </div>
+        <button id="micPermissionBtn" type="button" class="dashboard-mic-btn">Enable Microphone</button>
+      </section>
+      <section class="dashboard-sync-strip" aria-live="polite">
+        <div class="dashboard-sync-copy">
+          <strong id="dashboardPendingCount" class="dashboard-sync-count">Pending 0</strong>
+          <span id="dashboardNetworkHint" class="dashboard-sync-hint">Online</span>
+        </div>
+        <button id="dashboardSyncBtn" type="button" class="dashboard-sync-btn">Sync Pending</button>
+      </section>
+    </section>
+
+    <section id="modulePanel" class="module-panel hidden" aria-live="polite">
+      <header class="steel-topbar module-bar">
+        <button id="panelBackBtn" class="steel-icon-btn" aria-label="Back to modules">←</button>
+        <div class="topbar-title-wrap">
+          <span id="panelIcon" class="panel-icon"></span>
+          <h1 id="panelTitle" class="panel-title">Module</h1>
+        </div>
+        <span class="steel-icon-btn module-bar-spacer" aria-hidden="true"></span>
+      </header>
+
+      <div class="progress-strip" id="progressStrip">
+        <div class="progress-strip-fill" id="progressFill"></div>
+      </div>
+      <p class="progress-strip-text" id="progressText"></p>
+
+      <div id="fieldGrid" class="field-grid"></div>
+
+      <div class="panel-actions">
+        <button id="saveOfflineBtn" class="action-btn secondary">Save Draft</button>
+        <button id="saveSyncBtn" class="action-btn primary">Submit</button>
+      </div>
+    </section>
+  </main>
+
+  <div id="toastHost" class="toast-host" aria-live="polite"></div>
+
+  <script type="module" src="./src/lib/pwa-bootstrap.js"></script>
+  <script type="module" src="./src/pages/home.js"></script>
+</body>
+</html>

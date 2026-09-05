@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DynaHaul X — Setup</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1a365d 0%, #2c5282 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .wizard-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .wizard-header {
+            background: linear-gradient(135deg, #2c5282 0%, #3182ce 100%);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .wizard-header h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 5px; }
+        .wizard-header p { font-size: 0.85rem; opacity: 0.9; }
+
+        .progress-bar { display: flex; justify-content: center; gap: 10px; margin-top: 20px; }
+
+        .progress-step {
+            width: 12px; height: 12px; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transition: all 0.3s;
+        }
+        .progress-step.active { background: white; transform: scale(1.2); }
+        .progress-step.completed { background: #48bb78; }
+
+        .wizard-content { padding: 30px; overflow-y: auto; }
+
+        .screen { display: none; animation: fadeIn 0.3s ease; }
+        .screen.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .screen-title {
+            font-size: 1.25rem; font-weight: 600; color: #1a202c;
+            margin-bottom: 20px; text-align: center;
+        }
+
+        .form-group { margin-bottom: 16px; }
+        .form-group label {
+            display: block; font-size: 0.85rem; font-weight: 500;
+            color: #4a5568; margin-bottom: 6px;
+        }
+        .form-group input {
+            width: 100%; padding: 12px 15px; border: 2px solid #e2e8f0;
+            border-radius: 10px; font-size: 1rem; transition: all 0.2s;
+        }
+        .form-group input:focus {
+            outline: none; border-color: #3182ce;
+            box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+        }
+
+        .section-label {
+            font-size: 0.8rem; font-weight: 600; color: #2c5282;
+            text-transform: uppercase; letter-spacing: 0.05em;
+            margin: 20px 0 10px; padding-top: 16px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .btn {
+            width: 100%; padding: 14px;
+            background: linear-gradient(135deg, #3182ce 0%, #2c5282 100%);
+            color: white; border: none; border-radius: 10px;
+            font-size: 1rem; font-weight: 600; cursor: pointer;
+            transition: all 0.2s; margin-top: 10px;
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(49, 130, 206, 0.3); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .btn-success { background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); }
+
+        .error-msg {
+            background: #fed7d7; color: #c53030; padding: 12px;
+            border-radius: 8px; font-size: 0.85rem; margin-bottom: 20px; display: none;
+        }
+
+        .success-msg {
+            background: #c6f6d5; color: #276749; padding: 12px;
+            border-radius: 8px; font-size: 0.85rem; margin-bottom: 20px; text-align: center;
+        }
+
+        .success-icon { font-size: 4rem; text-align: center; margin-bottom: 20px; }
+
+        .info-text {
+            font-size: 0.85rem; color: #718096;
+            text-align: center; margin-bottom: 20px;
+        }
+
+        .progress-container {
+            display: none; margin-top: 20px; padding: 15px;
+            background: #f0f4f8; border-radius: 10px;
+        }
+        .progress-text { font-size: 0.9rem; color: #4a5568; margin-bottom: 10px; text-align: center; }
+        .progress-bar-bg { width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
+        .progress-fill {
+            height: 100%; background: linear-gradient(90deg, #3182ce, #48bb78);
+            border-radius: 4px; transition: width 0.3s ease; width: 0%;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wizard-container">
+        <div class="wizard-header">
+            <div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 15px;">
+                <h1 style="margin:0; font-size: 1.5rem; font-weight: 800; line-height: 1.2;">DynaHaul X</h1>
+                <h1 style="margin:0; font-size: 1.5rem; font-weight: 800; line-height: 1.2;">Tipper Division</h1>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-step active" id="step1"></div>
+                <div class="progress-step" id="step2"></div>
+                <div class="progress-step" id="step3"></div>
+            </div>
+        </div>
+
+        <div class="wizard-content">
+            <div id="error-box" class="error-msg"></div>
+
+            <!-- SCREEN 1: License Key -->
+            <div class="screen active" id="screen1">
+                <h2 class="screen-title">License Activation</h2>
+                <div class="form-group">
+                    <label>Enter License Key</label>
+                    <input type="text" id="license-key" placeholder="XXXX-XXXX-XXXX-XXXX"
+                        style="text-transform: uppercase; letter-spacing: 2px;">
+                </div>
+                <button class="btn" onclick="validateLicense()">
+                    Activate License
+                </button>
+            </div>
+
+            <!-- SCREEN 2: Company Details + Manager Account -->
+            <div class="screen" id="screen2">
+                <h2 class="screen-title">Company Details</h2>
+
+                <div class="form-group">
+                    <label>Company Name</label>
+                    <input type="text" id="company-name" placeholder="ABC Mining Corporation">
+                </div>
+                <div class="form-group">
+                    <label>Site Name</label>
+                    <input type="text" id="site-name" placeholder="Main Quarry Site">
+                </div>
+
+                <div class="section-label">Your Manager Account</div>
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="m1-name" placeholder="Your name">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="m1-email" placeholder="you@company.com">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="m1-pass" placeholder="At least 6 characters">
+                </div>
+
+                <div class="progress-container" id="progress-container">
+                    <div class="progress-text" id="progress-text">Setting up your platform...</div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                </div>
+
+                <button class="btn" id="btn-setup" onclick="setupPlatform()">
+                    Create Account &amp; Setup
+                </button>
+
+                <div id="setup-error" style="background:#fed7d7;color:#c53030;padding:12px;border-radius:8px;font-size:0.85rem;margin-top:15px;display:none;"></div>
+            </div>
+
+            <!-- SCREEN 3: Success -->
+            <div class="screen" id="screen3">
+                <div class="success-icon">&#9989;</div>
+                <h2 class="screen-title">Setup Complete!</h2>
+                <div class="success-msg">
+                    Your platform is ready. Share this link with your team:
+                </div>
+
+                <div style="background: #f7fafc; padding: 15px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; margin-bottom: 20px;">
+                    <a href="#" id="final-link"
+                        style="color: #3182ce; font-weight: bold; text-decoration: none; word-break: break-all;">Loading...</a>
+                    <button onclick="copyLink()" id="copy-btn"
+                        style="margin-left: 15px; padding: 8px 16px; background: #3182ce; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.3s;">
+                        Copy Link
+                    </button>
+                </div>
+
+                <div id="copy-feedback" style="display: none; color: #48bb78; font-weight: 500; margin-bottom: 15px;">
+                    Link copied to clipboard!
+                </div>
+
+                <p class="info-text">Login with your email &amp; password. An OTP will be sent to verify your identity.</p>
+
+                <button class="btn btn-success" onclick="openWebApp()">
+                    Open Dashboard
+                </button>
+            </div>
+        </div>
+        <div style="position:fixed; bottom:5px; right:10px; color:#aaa; font-size:10px;">v2.2</div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+    <script>
+        const SUPABASE_URL = 'https://ajbbcoygzoxdtejvhbfq.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFqYmJjb3lnem94ZHRlanZoYmZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUyMzIzNjUsImV4cCI6MjEwMDgwODM2NX0.mmAUfLd3gUs06iFkKAiYurjrOz7CuB3ViSmtNSY9Zvg';
+        const WEB_APP_URL = window.location.origin;
+
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let setupData = {
+            licenseId: null,
+            customerId: null,
+            siteId: null
+        };
+
+        function showError(msg) {
+            const box = document.getElementById('error-box');
+            box.textContent = msg;
+            box.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('error-box').style.display = 'none';
+        }
+
+        function showSetupError(msg) {
+            const box = document.getElementById('setup-error');
+            box.textContent = msg;
+            box.style.display = 'block';
+        }
+
+        function goToScreen(num) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('screen' + num).classList.add('active');
+
+            document.querySelectorAll('.progress-step').forEach((s, i) => {
+                s.classList.remove('active', 'completed');
+                if (i + 1 < num) s.classList.add('completed');
+                if (i + 1 === num) s.classList.add('active');
+            });
+            hideError();
+        }
+
+        async function validateLicense() {
+            const key = document.getElementById('license-key').value.trim().toUpperCase();
+            if (!key) return showError('Please enter a license key');
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('licenses')
+                    .select('*')
+                    .eq('license_key', key)
+                    .single();
+
+                if (error || !data) return showError('Invalid license key.');
+                if (!data.is_active) return showError('License deactivated.');
+                if (data.is_setup_complete) return showError('License already used.');
+
+                setupData.licenseId = data.id;
+                goToScreen(2);
+
+            } catch (err) {
+                showError('Connection error.');
+            }
+        }
+
+        async function setupPlatform() {
+            const companyName = document.getElementById('company-name').value.trim();
+            const siteName = document.getElementById('site-name').value.trim();
+            const mgrName = document.getElementById('m1-name').value.trim();
+            const mgrEmail = document.getElementById('m1-email').value.trim().toLowerCase();
+            const mgrPass = document.getElementById('m1-pass').value;
+
+            if (!companyName || !siteName) return showSetupError('Please fill in company and site name.');
+            if (!mgrName || !mgrEmail || !mgrPass) return showSetupError('Please fill in your name, email, and password.');
+            if (mgrPass.length < 6) return showSetupError('Password must be at least 6 characters.');
+
+            const btn = document.getElementById('btn-setup');
+            const progressContainer = document.getElementById('progress-container');
+            const progressText = document.getElementById('progress-text');
+            const progressFill = document.getElementById('progress-fill');
+
+            btn.style.display = 'none';
+            progressContainer.style.display = 'block';
+            document.getElementById('setup-error').style.display = 'none';
+
+            try {
+                // Step 1: Create customer
+                progressText.textContent = 'Creating company...';
+                progressFill.style.width = '20%';
+
+                const { data: customer, error: custError } = await supabaseClient
+                    .from('customers')
+                    .insert({ name: companyName })
+                    .select().single();
+                if (custError) throw custError;
+
+                // Step 2: Create site
+                progressText.textContent = 'Creating site...';
+                progressFill.style.width = '40%';
+
+                const { data: site, error: siteError } = await supabaseClient
+                    .from('sites')
+                    .insert({
+                        customer_id: customer.id,
+                        license_id: setupData.licenseId,
+                        site_name: siteName
+                    })
+                    .select().single();
+                if (siteError) throw siteError;
+
+                setupData.customerId = customer.id;
+                setupData.siteId = site.id;
+
+                // Step 3: Create manager account
+                progressText.textContent = 'Creating your account...';
+                progressFill.style.width = '70%';
+
+                const response = await fetch(WEB_APP_URL + '/api/create-user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: mgrEmail,
+                        password: mgrPass,
+                        name: mgrName,
+                        role: 'manager',
+                        user_type: 'manager',
+                        site_id: site.id,
+                        customer_id: customer.id,
+                        license_id: setupData.licenseId
+                    })
+                });
+
+                const result = await response.json();
+                if (!response.ok || result.error) {
+                    throw new Error(result.error || 'Failed to create account');
+                }
+
+                // Step 4: Mark license as complete
+                progressText.textContent = 'Finalizing...';
+                progressFill.style.width = '100%';
+
+                await supabaseClient
+                    .from('licenses')
+                    .update({ is_setup_complete: true })
+                    .eq('id', setupData.licenseId);
+
+                document.getElementById('final-link').textContent = WEB_APP_URL;
+                document.getElementById('final-link').href = WEB_APP_URL;
+                goToScreen(3);
+
+            } catch (err) {
+                progressContainer.style.display = 'none';
+                btn.style.display = 'block';
+                showSetupError(err.message);
+            }
+        }
+
+        function openWebApp() {
+            window.location.href = WEB_APP_URL + '/fitter/login.html';
+        }
+
+        function copyLink() {
+            const link = document.getElementById('final-link').textContent;
+            navigator.clipboard.writeText(link).then(() => {
+                const feedback = document.getElementById('copy-feedback');
+                feedback.style.display = 'block';
+
+                const btn = document.getElementById('copy-btn');
+                btn.textContent = 'Copied!';
+                btn.style.background = '#48bb78';
+
+                setTimeout(() => {
+                    feedback.style.display = 'none';
+                    btn.textContent = 'Copy Link';
+                    btn.style.background = '#3182ce';
+                }, 2000);
+            }).catch(() => {
+                alert('Failed to copy. Please copy manually: ' + link);
+            });
+        }
+    </script>
+</body>
+
+</html>

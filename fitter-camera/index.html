@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redirecting to fitter app</title>
+  <meta http-equiv="refresh" content="0;url=../fitter/capture.html?form=pressure_check">
+  <script>
+    const params = window.location.search || '';
+    window.location.replace(`../fitter/capture.html${params}`);
+  </script>
+</head>
+<body>
+  Redirecting to the structured fitter application...
+</body>
+</html>
