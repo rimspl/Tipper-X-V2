@@ -18,7 +18,9 @@ const state = {
   sourceTab,
   page: 1,
   pageSize: 50,
-  rows: []
+  rows: [],
+  pickerEntries: [],
+  pickerQuery: ''
 };
 
 const elements = {
@@ -28,6 +30,15 @@ const elements = {
   historyTitle: document.getElementById('historyTitle'),
   historyMeta: document.getElementById('historyMeta'),
   historyExportBtn: document.getElementById('historyExportBtn'),
+  historyAllTyres: document.getElementById('historyAllTyres'),
+  historyPicker: document.getElementById('historyPicker'),
+  historyPickerBody: document.getElementById('historyPickerBody'),
+  historyPickerCount: document.getElementById('historyPickerCount'),
+  historyPickerEmpty: document.getElementById('historyPickerEmpty'),
+  historySearch: document.getElementById('historySearch'),
+  historyFilters: document.getElementById('historyFilters'),
+  historyTableFooter: document.getElementById('historyTableFooter'),
+  historyTableWrap: document.getElementById('historyTableWrap'),
   historyFrom: document.getElementById('historyFrom'),
   historyTo: document.getElementById('historyTo'),
   historyTruck: document.getElementById('historyTruck'),
@@ -61,20 +72,18 @@ async function init() {
   const backUrl = `./index.html#${state.sourceTab}`;
   elements.historyTopBack.href = backUrl;
   elements.historyBackBtn.href = backUrl;
+  if (elements.historyAllTyres) {
+    elements.historyAllTyres.href = `./tyre-history.html?from=${state.sourceTab}`;
+  }
 
   bindEvents();
 
   if (!state.requestedTyre) {
-    elements.historyTitle.textContent = 'Tyre History';
-    elements.historyMeta.textContent = 'Tyre number is missing in the URL.';
-    elements.historyTableBody.innerHTML = '<tr><td colspan="13">Tyre number is missing. Open this page using View from dashboard.</td></tr>';
-    elements.historyExportBtn.disabled = true;
-    if (elements.loadingOverlay) {
-      elements.loadingOverlay.classList.add('fade-out');
-    }
+    await initPicker();
     return;
   }
 
+  setPickerMode(false);
   elements.historyTitle.textContent = `Tyre History - ${state.requestedTyre}`;
 
   const dataset = await fetchManagerDataset(state.session.siteId, (freshData) => {
@@ -89,16 +98,142 @@ async function init() {
     .sort(sortHistoryRows);
 
   renderHistoryTable();
+  dismissLoading();
+}
 
-  if (elements.loadingOverlay) {
-    elements.loadingOverlay.classList.add('fade-out');
-    elements.loadingOverlay.addEventListener('transitionend', () => {
-      elements.loadingOverlay.remove();
-    }, { once: true });
+async function initPicker() {
+  setPickerMode(true);
+  elements.historyTitle.textContent = 'Tyre History';
+  elements.historyMeta.textContent = 'Select a tyre to see its inspection, pressure and fitment history.';
+
+  try {
+    const dataset = await fetchManagerDataset(state.session.siteId);
+    state.pickerEntries = buildPickerEntries(dataset);
+    renderPicker();
+  } catch (error) {
+    console.error(error);
+    elements.historyPickerCount.textContent = 'Unavailable';
+    elements.historyPickerEmpty.textContent = 'Could not load tyres. Refresh the page to try again.';
+    elements.historyPickerEmpty.hidden = false;
+    toast(error.message || 'Failed to load tyres', 'error');
+  } finally {
+    dismissLoading();
   }
 }
 
+function setPickerMode(enabled) {
+  elements.historyPicker?.classList.toggle('hidden', !enabled);
+  elements.historyFilters?.classList.toggle('hidden', enabled);
+  elements.historyTableFooter?.classList.toggle('hidden', enabled);
+  elements.historyTableWrap?.classList.toggle('hidden', enabled);
+  if (elements.historyExportBtn) {
+    elements.historyExportBtn.classList.toggle('hidden', enabled);
+    elements.historyExportBtn.disabled = enabled;
+  }
+  elements.historyAllTyres?.classList.toggle('hidden', enabled);
+}
+
+function buildPickerEntries(dataset) {
+  const entries = new Map();
+
+  const upsert = (row) => {
+    const key = normalize(row?.tyre_no);
+    if (!key || key === '-') return;
+
+    const entry = entries.get(key) || {
+      tyre: cleanValue(row.tyre_no),
+      truck: '',
+      brand: '',
+      status: '',
+      lastInspection: null
+    };
+
+    if (!entry.truck) entry.truck = cleanValue(row.vehicle_no || row.truck);
+    if (!entry.brand) entry.brand = cleanValue(row.make || row.brand);
+    if (!entry.status) entry.status = cleanValue(row.status || row.tyre_status || row.current_status);
+
+    const lastSeen = parseDateValue(row.activity_date || row.last_inspection_date || row.latest_inspection_date);
+    if (lastSeen && (!entry.lastInspection || lastSeen > entry.lastInspection)) {
+      entry.lastInspection = lastSeen;
+    }
+
+    entries.set(key, entry);
+  };
+
+  (dataset?.tyreRecords || []).forEach(upsert);
+  (dataset?.inspectionRecords || []).forEach(upsert);
+
+  return Array.from(entries.values()).sort((a, b) => {
+    const left = b.lastInspection?.getTime() || 0;
+    const right = a.lastInspection?.getTime() || 0;
+    return left - right || a.tyre.localeCompare(b.tyre, undefined, { numeric: true });
+  });
+}
+
+function renderPicker() {
+  const query = normalize(state.pickerQuery);
+  const matches = state.pickerEntries.filter((entry) => {
+    if (!query) return true;
+    return [entry.tyre, entry.truck, entry.brand]
+      .some((value) => normalize(value).includes(query));
+  });
+
+  elements.historyPickerCount.textContent = `${matches.length} ${matches.length === 1 ? 'tyre' : 'tyres'}`;
+  elements.historyPickerBody.replaceChildren();
+
+  if (matches.length === 0) {
+    elements.historyPickerEmpty.hidden = false;
+    elements.historyPickerEmpty.textContent = state.pickerEntries.length === 0
+      ? 'No tyres found for this site yet.'
+      : 'No tyres match your search.';
+    return;
+  }
+
+  elements.historyPickerEmpty.hidden = true;
+
+  for (const entry of matches.slice(0, 100)) {
+    const row = document.createElement('tr');
+
+    const tyre = document.createElement('td');
+    tyre.textContent = entry.tyre;
+    const truck = document.createElement('td');
+    truck.textContent = entry.truck || '-';
+    const brand = document.createElement('td');
+    brand.textContent = entry.brand || '-';
+    const status = document.createElement('td');
+    status.textContent = entry.status || '-';
+    const lastInspection = document.createElement('td');
+    lastInspection.textContent = entry.lastInspection
+      ? entry.lastInspection.toLocaleDateString('en-IN')
+      : '-';
+
+    const open = document.createElement('td');
+    const link = document.createElement('a');
+    link.className = 'btn btn-secondary';
+    link.href = `./tyre-history.html?tyre=${encodeURIComponent(entry.tyre)}&from=${state.sourceTab}`;
+    link.textContent = 'Open history';
+    link.setAttribute('aria-label', `Open history for tyre ${entry.tyre}`);
+    open.appendChild(link);
+
+    row.append(tyre, truck, brand, status, lastInspection, open);
+    elements.historyPickerBody.appendChild(row);
+  }
+}
+
+function dismissLoading() {
+  if (!elements.loadingOverlay) return;
+  elements.loadingOverlay.classList.add('fade-out');
+  elements.loadingOverlay.addEventListener('transitionend', () => {
+    elements.loadingOverlay.remove();
+  }, { once: true });
+}
+
 function bindEvents() {
+  elements.historySearch?.addEventListener('input', (event) => {
+    state.pickerQuery = event.target.value;
+    renderPicker();
+  });
+
   elements.historyApplyFilter?.addEventListener('click', () => {
     state.page = 1;
     renderHistoryTable();
@@ -369,6 +504,17 @@ function formatTranscript(transcript) {
 
 function normalize(value) {
   return String(value || '').trim().toUpperCase();
+}
+
+function cleanValue(value) {
+  const text = String(value ?? '').trim();
+  return text && text !== '-' ? text : '';
+}
+
+function parseDateValue(value) {
+  if (!value || value === '-') return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
 }
 
 function formatNumber(value) {

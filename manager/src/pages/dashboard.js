@@ -19,6 +19,8 @@ import {
   fetchRemovalReasons,
   invalidateCache as invalidateDataCache
 } from '../lib/data-queries.js';
+import { TYRE_CARDS } from '../data/tyre-cards.js';
+import { initHomepageOverview, renderHomepageOverview } from './homepage-overview.js';
 
 const __urlParams = new URLSearchParams(window.location.search);
 const __isOnboardingPreview = __urlParams.get('preview') === 'onboarding';
@@ -67,6 +69,8 @@ const state = {
   pressureEvents: [],
   fuelRows: [],
   analytics: null,
+  tyrePage: 1,
+  tyrePageSize: 50,
   inspectionPage: 1,
   inspectionPageSize: 50,
   analyticsPageSizes: {
@@ -91,12 +95,23 @@ const state = {
   defectTrend: [],
   removalReasons: [],
   enabledReports: [],
+  reportsVisibilityApplied: false,
+  reportDeepLink: '',
+  reportDeepLinkApplied: false,
   retreadCounts: {},
   ratePerKm: 0,
   dateRangePreset: 'all',
   dateFrom: null,
   dateTo: null,
-  analyticsGraphWindowMonths: 12
+  analyticsGraphWindowMonths: 12,
+  lastUpdated: null,
+  dataErrors: {
+    targets: false,
+    dataset: false,
+    fuel: false,
+    ai: false,
+    health: false
+  }
 };
 
 const elements = {
@@ -123,9 +138,23 @@ const elements = {
   tyreDateFrom: document.getElementById('tyreDateFrom'),
   tyreDateTo: document.getElementById('tyreDateTo'),
   tyreApplyFilter: document.getElementById('tyreApplyFilter'),
+  tyreClearFilter: document.getElementById('tyreClearFilter'),
   exportTyreXls: document.getElementById('exportTyreXls'),
   tyreRecordCount: document.getElementById('tyreRecordCount'),
   tyreTableBody: document.getElementById('tyreTableBody'),
+  tyrePageMeta: document.getElementById('tyrePageMeta'),
+  tyrePageSize: document.getElementById('tyrePageSize'),
+  tyrePrevPage: document.getElementById('tyrePrevPage'),
+  tyreNextPage: document.getElementById('tyreNextPage'),
+  tyrePageInfo: document.getElementById('tyrePageInfo'),
+  tyreCardModal: document.getElementById('tyreCardModal'),
+  tyreCardTitle: document.getElementById('tyreCardTitle'),
+  tyreCardSub: document.getElementById('tyreCardSub'),
+  tyreCardBody: document.getElementById('tyreCardBody'),
+  tyreCardClose: document.getElementById('tyreCardClose'),
+  tyreCardTotal: document.getElementById('tyreCardTotal'),
+  tyreCardStatus: document.getElementById('tyreCardStatus'),
+  exportTyreCardXls: document.getElementById('exportTyreCardXls'),
   tyreHistorySection: document.getElementById('tyreHistorySection'),
   tyreHistoryTitle: document.getElementById('tyreHistoryTitle'),
   tyreHistoryCount: document.getElementById('tyreHistoryCount'),
@@ -233,6 +262,7 @@ init().catch((error) => {
 async function init() {
   elements.userLabel.textContent = `${state.session.username} • ${state.session.siteName}`;
   bindEvents();
+  initHomepageOverview({ onRefresh: refreshDashboardData });
   try {
     await loadCoreData();
   } catch (error) {
@@ -253,9 +283,17 @@ async function init() {
     ? hashTab.toLowerCase()
     : 'tyres';
   switchTab(initialTab);
+  applyReportDeepLink();
 }
 
 function bindEvents() {
+  window.addEventListener('hashchange', () => {
+    const hashTab = String(window.location.hash.replace('#', '') || '').trim().toLowerCase();
+    if (['tyres', 'inspection', 'analytics', 'savings'].includes(hashTab) && hashTab !== state.activeTab) {
+      switchTab(hashTab);
+    }
+  });
+
   elements.tabNav.addEventListener('click', (event) => {
     const button = event.target.closest('button[data-tab]');
     if (!button) return;
@@ -273,13 +311,19 @@ function bindEvents() {
     });
   });
 
-  elements.tyreApplyFilter.addEventListener('click', renderTyreTable);
-  elements.tyreNumberFilter?.addEventListener('input', () => {
-    renderTyreTable();
-  });
+  elements.tyreApplyFilter.addEventListener('click', () => { state.tyrePage = 1; renderTyreTable(); });
+  elements.tyreClearFilter?.addEventListener('click', () => { if (elements.tyreNumberFilter) elements.tyreNumberFilter.value = ''; state.tyrePage = 1; renderTyreTable(); elements.tyreNumberFilter?.focus(); });
+  elements.tyreNumberFilter?.addEventListener('input', () => { state.tyrePage = 1; renderTyreTable(); });
+  elements.tyreNumberFilter?.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); state.tyrePage = 1; renderTyreTable(); }});
+  elements.tyrePageSize?.addEventListener('change', () => { state.tyrePageSize = Math.max(1, Number(elements.tyrePageSize.value || 50)); state.tyrePage = 1; renderTyreTable(); });
+  elements.tyrePrevPage?.addEventListener('click', () => { state.tyrePage = Math.max(1, state.tyrePage - 1); renderTyreTable(); });
+  elements.tyreNextPage?.addEventListener('click', () => { state.tyrePage += 1; renderTyreTable(); });
   elements.exportTyreXls?.addEventListener('click', exportTyreRows);
   elements.exportTyreHistoryBtn?.addEventListener('click', exportTyreHistoryRows);
   elements.closeTyreHistoryBtn?.addEventListener('click', closeTyreHistoryView);
+  elements.tyreCardClose?.addEventListener('click', closeTyreCardModal);
+  elements.tyreCardModal?.addEventListener('click', (event) => { if (event.target === elements.tyreCardModal) closeTyreCardModal(); });
+  elements.exportTyreCardXls?.addEventListener('click', exportTyreCardExcel);
 
   elements.inspectionApplyFilter.addEventListener('click', () => {
     state.inspectionPage = 1;
@@ -388,6 +432,11 @@ function bindEvents() {
   window.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape') return;
 
+    if (elements.tyreCardModal && !elements.tyreCardModal.classList.contains('hidden')) {
+      closeTyreCardModal();
+      return;
+    }
+
     if (elements.pressureLossModal && !elements.pressureLossModal.classList.contains('hidden')) {
       closePressureLossModal();
       return;
@@ -421,10 +470,31 @@ function bindEvents() {
   initAnalyticsSearch();
 }
 
+async function refreshDashboardData() {
+  if (!state.session.siteId) {
+    throw new Error('Manager account is not linked to a site');
+  }
+
+  invalidateManagerDataset(state.session.siteId);
+  invalidateDataCache();
+  await loadCoreData();
+  state.lastUpdated = new Date();
+  renderHomepageOverview(state);
+  toast('Dashboard refreshed.', 'success');
+}
+
 async function loadCoreData() {
   if (!state.session.siteId) {
     throw new Error('Manager account is not linked to a site');
   }
+
+  state.dataErrors = {
+    targets: false,
+    dataset: false,
+    fuel: false,
+    ai: false,
+    health: false
+  };
 
   // One-time cache bust: discard stale IndexedDB + memory cache after DB fixes
   try {
@@ -444,6 +514,7 @@ async function loadCoreData() {
   const [targets, ai, fuelRows, retreadCounts] = await Promise.all([
     fetchSiteTargets(state.session.siteId).catch((error) => {
       console.warn('Using default targets:', error);
+      state.dataErrors.targets = true;
       return {
         siteName: state.session.siteName || 'Site',
         lifeUnit: 'KM',
@@ -470,10 +541,12 @@ async function loadCoreData() {
     }),
     fetchAiAccuracy(state.session.siteId).catch((error) => {
       console.warn('Using default AI accuracy:', error);
+      state.dataErrors.ai = true;
       return { total: 0, auto: 0, autoPercent: 0 };
     }),
     fetchFuelRows(state.session.siteId).catch((error) => {
       console.warn('Using empty fuel rows:', error);
+      state.dataErrors.fuel = true;
       return [];
     }),
     fetchRetreadCounts(state.session.siteId).catch((error) => {
@@ -485,6 +558,7 @@ async function loadCoreData() {
   Promise.all([
     fetchFleetHealthScore(state.session.siteId).catch((error) => {
       console.warn('Fleet health fetch failed:', error);
+      state.dataErrors.health = true;
       return null;
     }),
     fetchTyreAgeDistribution(state.session.siteId).catch((error) => {
@@ -504,6 +578,8 @@ async function loadCoreData() {
     state.ageDistribution = age;
     state.defectTrend = defect;
     state.removalReasons = removal;
+    if (hs) state.dataErrors.health = false;
+    renderHomepageOverview(state);
   });
 
   if (token !== currentFetchToken) return;
@@ -519,7 +595,9 @@ async function loadCoreData() {
     state.analytics = { pressure: { summary: { cumulative_loss: 0 } } };
   }
 
+  state.lastUpdated = new Date();
   renderTopStrip();
+  renderHomepageOverview(state);
   renderFuelRows();
 
   if (elements.loadingOverlay) {
@@ -543,20 +621,48 @@ async function loadManagerAnalyticsAsync(siteId, token) {
 
     const dataset = await fetchManagerDataset(siteId, freshDataHandler);
     if (token !== currentFetchToken) return;
-    
+
+    state.dataErrors.dataset = false;
     applyManagerDataset(dataset);
     renderAllHeavyModules();
 
   } catch (error) {
     console.warn('Using empty manager dataset:', error);
     if (token !== currentFetchToken) return;
+    state.dataErrors.dataset = true;
     applyManagerDataset({ tyreRecords: [], inspectionRecords: [], pressureEvents: [] });
     renderAllHeavyModules();
   }
 }
 
 function applyManagerDataset(dataset) {
-  state.tyreRecords = dataset.tyreRecords || [];
+  const excelTyreRecords = Object.keys(TYRE_CARDS).sort().map((tn) => {
+    const rows = TYRE_CARDS[tn] || [];
+    const first = rows[0];
+    const last = rows[rows.length - 1];
+    const totalLife = rows.reduce((s, r) => {
+      const v = Number(String(r.life).replace(/,/g, ''));
+      return Number.isFinite(v) ? s + v : s;
+    }, 0);
+    return {
+      tyre_no: tn,
+      make: first?.brand || 'MRF',
+      size: '-',
+      status: last?.removalDate === '-' ? 'Running' : 'Scrapped',
+      total_life_run: totalLife,
+      current_rtd1: last?.rtd1Rem !== '-' ? last.rtd1Rem : last?.rtd1Fit,
+      current_rtd2: last?.rtd2Rem !== '-' ? last.rtd2Rem : last?.rtd2Fit
+    };
+  });
+  const excelMap = new Map(excelTyreRecords.map((r) => [normalize(r.tyre_no), r]));
+  const merged = [...excelTyreRecords];
+  for (const r of dataset.tyreRecords || []) {
+    const norm = normalize(r.tyre_no);
+    if (!norm || norm === '-' || excelMap.has(norm)) continue;
+    merged.push(r);
+  }
+  merged.sort((a, b) => String(a.tyre_no || '').localeCompare(String(b.tyre_no || '')));
+  state.tyreRecords = merged.length > 0 ? merged : excelTyreRecords;
   state.inspectionRecords = dataset.inspectionRecords || [];
   state.pressureEvents = dataset.pressureEvents || [];
   state.analytics = buildAnalyticsSnapshot({
@@ -568,7 +674,9 @@ function applyManagerDataset(dataset) {
 }
 
 function renderAllHeavyModules() {
-  renderTopStrip(); 
+  state.lastUpdated = new Date();
+  renderTopStrip();
+  renderHomepageOverview(state);
   renderTyreFilterOptions();
   renderTyreTable();
   renderInspectionTable();
@@ -581,10 +689,14 @@ function renderAllHeavyModules() {
   renderTyrePnL();
   updateTabBadges();
   applyReportVisibility();
-  requestAnimationFrame(() => renderCharts());
+  requestAnimationFrame(() => {
+    renderCharts();
+    requestAnimationFrame(() => applyReportDeepLink());
+  });
 }
 
 function applyReportVisibility() {
+  state.reportsVisibilityApplied = true;
   const enabled = state.enabledReports;
   if (!enabled || enabled.length === 0) return;
 
@@ -847,13 +959,21 @@ function renderTyrePnL() {
 }
 
 function renderTopStrip() {
-  elements.targetTyreLife.textContent = `${formatNumber(state.targets.targetTyreLife)} ${state.targets.lifeUnit}`;
-  elements.targetFuel.textContent = `${formatNumber(state.targets.targetFuelEfficiency)} Km/L`;
-  elements.targetSavings.textContent = currency(state.targets.targetAnnualSavings);
-  const pressureCumulativeLoss = state.analytics?.pressure?.summary?.cumulative_loss;
-  elements.pressureLeakage.textContent = Number.isFinite(Number(pressureCumulativeLoss))
-    ? currency(pressureCumulativeLoss)
-    : '0';
+  if (elements.targetTyreLife) {
+    elements.targetTyreLife.textContent = `${formatNumber(state.targets.targetTyreLife)} ${state.targets.lifeUnit}`;
+  }
+  if (elements.targetFuel) {
+    elements.targetFuel.textContent = `${formatNumber(state.targets.targetFuelEfficiency)} Km/L`;
+  }
+  if (elements.targetSavings) {
+    elements.targetSavings.textContent = currency(state.targets.targetAnnualSavings);
+  }
+  if (elements.pressureLeakage) {
+    const pressureCumulativeLoss = state.analytics?.pressure?.summary?.cumulative_loss;
+    elements.pressureLeakage.textContent = Number.isFinite(Number(pressureCumulativeLoss))
+      ? currency(pressureCumulativeLoss)
+      : '0';
+  }
 }
 
 function renderTyreFilterOptions() {
@@ -872,85 +992,158 @@ function renderTyreFilterOptions() {
 }
 
 function renderTyreTable() {
-  const rows = getFilteredTyreRows();
+  const allRows = getFilteredTyreRows();
+  const paged = paginateRows(allRows, state.tyrePage, state.tyrePageSize);
+  state.tyrePage = paged.page;
 
   if (elements.tyreRecordCount) {
-    elements.tyreRecordCount.textContent = `Total Tyres Recorded: ${state.tyreRecords.length} | Showing: ${rows.length}`;
+    elements.tyreRecordCount.textContent = `Total Tyres: ${state.tyreRecords.length} | Filtered: ${allRows.length}`;
   }
+  renderPagerState({ metaEl: elements.tyrePageMeta, pageEl: elements.tyrePageInfo, prevEl: elements.tyrePrevPage, nextEl: elements.tyreNextPage }, paged, 'tyres');
+  if (elements.tyrePageSize) elements.tyrePageSize.value = String(state.tyrePageSize);
 
   elements.tyreTableBody.innerHTML = '';
-  if (rows.length === 0) {
-    elements.tyreTableBody.innerHTML = '<tr><td colspan="13">No tyre records found for this filter.</td></tr>';
+  if (paged.rows.length === 0) {
+    elements.tyreTableBody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:20px;color:#94a3b8">No tyres found. Try different search.</td></tr>';
     return;
   }
 
-  for (const row of rows) {
+  let sl = paged.start;
+  for (const row of paged.rows) {
     const tr = document.createElement('tr');
-    const statusClass = `status-${String(row.status || '').toLowerCase()}`;
     tr.innerHTML = `
-      <td>${row.tyre_no}</td>
-      <td>${row.make}</td>
-      <td>${row.size}</td>
-      <td>${row.status === 'Running' ? row.vehicle_no : '-'}</td>
-      <td>${row.position}</td>
-      <td><span class="status-badge ${statusClass}">${row.status}</span></td>
-      <td>${row.last_activity_date}</td>
-      <td>${row.current_rtd1}</td>
-      <td>${row.current_rtd2}</td>
-      <td>${formatNumber(row.odometer)}</td>
-      <td>${formatNumber(row.total_life_run)}</td>
-      <td>${row.first_fitment_date}</td>
-      <td>
-        <div class="row-actions">
-          <button class="btn btn-row-view" type="button" data-action="tyre-view-history">View</button>
-          <button class="btn btn-row-evidence" type="button" data-action="tyre-evidence" data-submission-id="${row.evidence_submission_id || ''}">View Evidence</button>
-        </div>
-      </td>
+      <td>${sl++}</td>
+      <td><strong>${escapeHtml(row.tyre_no)}</strong></td>
+      <td><button class="btn btn-row-view" type="button" data-action="tyre-view-card">View</button></td>
     `;
-
-    const evidenceButton = tr.querySelector('button[data-action="tyre-evidence"]');
-    evidenceButton?.addEventListener('click', () => {
-      const submissionId = evidenceButton.dataset.submissionId;
-      if (!submissionId) {
-        toast('No mapped submission evidence for this tyre record.', 'info');
-        return;
-      }
-      void openEvidenceModal({
-        submissionId,
-        title: `${row.tyre_no} • ${row.vehicle_no}`
-      });
+    tr.querySelector('button[data-action="tyre-view-card"]')?.addEventListener('click', () => {
+      openTyreCardModal(row.tyre_no);
     });
-
-    const viewHistoryButton = tr.querySelector('button[data-action="tyre-view-history"]');
-    viewHistoryButton?.addEventListener('click', () => {
-      openTyreHistoryPage(row.tyre_no, 'tyres');
-    });
-
     elements.tyreTableBody.appendChild(tr);
   }
 }
 
 function getFilteredTyreRows() {
-  const filters = {
-    brand: elements.tyreBrandFilter.value,
-    tyreNo: normalize(elements.tyreNumberFilter?.value),
-    truck: normalize(elements.tyreTruckFilter.value),
-    status: elements.tyreStatusFilter.value,
-    from: elements.tyreDateFrom.value,
-    to: elements.tyreDateTo.value
-  };
+  const tyreNo = normalize(elements.tyreNumberFilter?.value);
+  let rows = state.tyreRecords;
+  if (tyreNo) {
+    rows = rows.filter((record) => normalize(record.tyre_no).includes(tyreNo));
+  }
+  return [...rows].sort((a, b) => String(a.tyre_no || '').localeCompare(String(b.tyre_no || '')));
+}
 
-  return state.tyreRecords.filter((record) => {
-    if (filters.brand && record.make !== filters.brand) return false;
-    if (filters.status && record.status !== filters.status) return false;
-    if (filters.tyreNo && !normalize(record.tyre_no).includes(filters.tyreNo)) return false;
-    if (filters.truck && !normalize(record.vehicle_no).includes(filters.truck)) return false;
+let _activeTyreCardNo = null;
+let _activeTyreCardRows = [];
 
-    const fitDate = record.first_fitment_date;
-    if (filters.from && fitDate !== '-' && fitDate < filters.from) return false;
-    if (filters.to && fitDate !== '-' && fitDate > filters.to) return false;
-    return true;
+function buildTyreCardRows(tyreNo) {
+  const norm = normalize(tyreNo);
+  const excelRows = TYRE_CARDS[norm] || TYRE_CARDS[String(tyreNo || '').trim().toUpperCase()] || null;
+  if (excelRows && Array.isArray(excelRows) && excelRows.length > 0) {
+    return excelRows.map((r) => ({
+      sl: r.sl,
+      tyreNo: r.tyreNo,
+      brand: r.brand,
+      newOld: r.newOld,
+      dNo: r.dNo,
+      position: r.position,
+      fittedDate: r.fittedDate,
+      fitKmr: formatNumber(r.fitKmr),
+      rtd1Fit: valueOrDash(r.rtd1Fit),
+      rtd2Fit: valueOrDash(r.rtd2Fit),
+      avgFit: r.avgFit,
+      removalDate: r.removalDate,
+      rtd1Rem: valueOrDash(r.rtd1Rem),
+      rtd2Rem: valueOrDash(r.rtd2Rem),
+      avgRem: r.avgRem,
+      wear: r.wear,
+      reason: r.reason,
+      removedKmr: formatNumber(r.removedKmr),
+      life: formatNumber(r.life)
+    }));
+  }
+  const logs = state.inspectionRecords.filter((r) => normalize(r.tyre_no) === norm);
+  if (logs.length === 0) return [];
+  const sorted = [...logs].sort((a, b) => {
+    const da = Date.parse(a.activity_date || a.date || '') || 0;
+    const db = Date.parse(b.activity_date || b.date || '') || 0;
+    if (da !== db) return da - db;
+    return Number(a._activity_at_ms || 0) - Number(b._activity_at_ms || 0);
   });
+  return sorted.map((r, i) => ({
+    sl: i + 1,
+    tyreNo: r.tyre_no,
+    brand: r.brand || '-',
+    newOld: i === 0 ? 'New' : 'Old',
+    dNo: r.truck || '-',
+    position: r.position || '-',
+    fittedDate: formatDateOnly(r.activity_date || r.date),
+    fitKmr: formatNumber(r.odometer),
+    rtd1Fit: valueOrDash(r.rtd1),
+    rtd2Fit: valueOrDash(r.rtd2),
+    avgFit: (Number(r.rtd1) && Number(r.rtd2)) ? ((Number(r.rtd1) + Number(r.rtd2)) / 2).toFixed(1) : '-',
+    removalDate: '-',
+    rtd1Rem: '-',
+    rtd2Rem: '-',
+    avgRem: '-',
+    wear: '-',
+    reason: r.remarks || r.activity_type || '-',
+    removedKmr: '-',
+    life: '-'
+  }));
+}
+
+function openTyreCardModal(tyreNo) {
+  const norm = normalize(tyreNo);
+  if (!norm) { toast('Tyre number missing', 'error'); return; }
+  _activeTyreCardNo = norm;
+  _activeTyreCardRows = buildTyreCardRows(norm);
+  if (elements.tyreCardTitle) elements.tyreCardTitle.textContent = `Tyre Card — ${norm}`;
+  if (elements.tyreCardSub) {
+    const rec = state.tyreRecords.find((r) => normalize(r.tyre_no) === norm);
+    const brand = rec?.make || _activeTyreCardRows[0]?.brand || '-';
+    const status = rec?.status || '-';
+    elements.tyreCardSub.textContent = `${brand} • ${status} • ${_activeTyreCardRows.length} lifecycle row(s) — matches Excel sheet "${norm}"`;
+  }
+  renderTyreCard();
+  elements.tyreCardModal?.classList.remove('hidden');
+}
+
+function closeTyreCardModal() {
+  elements.tyreCardModal?.classList.add('hidden');
+  _activeTyreCardNo = null;
+}
+
+function renderTyreCard() {
+  if (!elements.tyreCardBody) return;
+  elements.tyreCardBody.innerHTML = '';
+  if (_activeTyreCardRows.length === 0) {
+    elements.tyreCardBody.innerHTML = '<tr><td colspan="19" style="text-align:center;padding:20px;color:#94a3b8">No lifecycle rows for this tyre. Check inspectionRecords.</td></tr>';
+    if (elements.tyreCardTotal) elements.tyreCardTotal.textContent = '';
+    if (elements.tyreCardStatus) elements.tyreCardStatus.textContent = '';
+    return;
+  }
+  for (const r of _activeTyreCardRows) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${r.sl}</td><td><strong>${escapeHtml(r.tyreNo)}</strong></td><td>${escapeHtml(r.brand)}</td><td>${r.newOld}</td><td>${escapeHtml(r.dNo)}</td><td>${escapeHtml(r.position)}</td><td>${r.fittedDate}</td><td>${r.fitKmr}</td><td>${r.rtd1Fit}</td><td>${r.rtd2Fit}</td><td>${r.avgFit}</td><td>${r.removalDate}</td><td>${r.rtd1Rem}</td><td>${r.rtd2Rem}</td><td>${r.avgRem}</td><td>${r.wear}</td><td>${escapeHtml(r.reason)}</td><td>${r.removedKmr}</td><td>${r.life}</td>`;
+    elements.tyreCardBody.appendChild(tr);
+  }
+  const totalLife = _activeTyreCardRows.reduce((sum, r) => {
+    const v = Number(String(r.life).replace(/,/g, ''));
+    return Number.isFinite(v) ? sum + v : sum;
+  }, 0);
+  if (elements.tyreCardTotal) elements.tyreCardTotal.textContent = `TOTAL LIFE OF TYRE: ${totalLife.toLocaleString()} Kmr`;
+  const rec = state.tyreRecords.find((r) => normalize(r.tyre_no) === _activeTyreCardNo);
+  if (elements.tyreCardStatus) elements.tyreCardStatus.textContent = `Status: ${rec?.status || _activeTyreCardRows[_activeTyreCardRows.length - 1]?.reason || '-'}`;
+}
+
+function exportTyreCardExcel() {
+  if (!_activeTyreCardRows || _activeTyreCardRows.length === 0) { toast('No tyre card to export', 'info'); return; }
+  const header = ['Sl','Tyre No','Brand','New/Old','D No','Position','Fitted Date','Fit Kmr','RTD 1','RTD 2','Avg','Removal Date','RTD 1','RTD 2','Avg','Wear %','Reason','Removed Kmr','Life (Kmr)'];
+  const rows = _activeTyreCardRows.map((r) => [r.sl,r.tyreNo,r.brand,r.newOld,r.dNo,r.position,r.fittedDate,r.fitKmr,r.rtd1Fit,r.rtd2Fit,r.avgFit,r.removalDate,r.rtd1Rem,r.rtd2Rem,r.avgRem,r.wear,r.reason,r.removedKmr,r.life]);
+  const ws = XLSX.utils.aoa_to_sheet([header, ...rows]);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, _activeTyreCardNo || 'TyreCard');
+  XLSX.writeFile(wb, `TyreCard_${_activeTyreCardNo || 'export'}.xlsx`);
 }
 
 function showTyreRepositoryView() {
@@ -4110,17 +4303,78 @@ function collectCorrectedFields() {
   return corrected;
 }
 
+function isTabAvailable(tab) {
+  const button = document.querySelector(`.tab-btn[data-tab="${tab}"]`);
+  return Boolean(button) && button.style.display !== 'none';
+}
+
+function firstAvailableTab() {
+  const button = Array.from(document.querySelectorAll('.tab-btn'))
+    .find((item) => item.style.display !== 'none');
+  return button?.dataset.tab || 'tyres';
+}
+
 function switchTab(tab) {
-  state.activeTab = tab;
-  window.location.hash = tab;
+  const requested = String(tab || '').trim().toLowerCase();
+  const safeTab = isTabAvailable(requested) ? requested : firstAvailableTab();
+  state.activeTab = safeTab;
+
+  if (window.location.hash !== `#${safeTab}`) {
+    window.location.hash = safeTab;
+  }
 
   document.querySelectorAll('.tab-btn').forEach((button) => {
-    const active = button.dataset.tab === tab;
+    const active = button.dataset.tab === safeTab;
     button.classList.toggle('active', active);
   });
 
   document.querySelectorAll('.tab-panel').forEach((panel) => {
-    panel.classList.toggle('active', panel.id === `tab-${tab}`);
+    panel.classList.toggle('active', panel.id === `tab-${safeTab}`);
+  });
+}
+
+function applyReportDeepLink() {
+  if (state.reportDeepLinkApplied) return;
+
+  if (!state.reportDeepLink) {
+    const raw = new URLSearchParams(window.location.search).get('report') || '';
+    state.reportDeepLink = raw.trim().replace(/[^a-z0-9_-]/gi, '');
+  }
+
+  if (!state.reportDeepLink || !state.reportsVisibilityApplied) return;
+
+  const key = state.reportDeepLink;
+  const block = document.querySelector(`[data-report="${key}"]`);
+  state.reportDeepLinkApplied = true;
+
+  if (!block || block.style.display === 'none' || !isTabAvailable('analytics')) {
+    switchTab('analytics');
+    toast('That report is not enabled for this site. Showing Analytics.', 'info');
+    return;
+  }
+
+  switchTab('analytics');
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      const align = (behavior) => {
+        const top = window.scrollY + block.getBoundingClientRect().top - 18;
+        window.scrollTo({ top: Math.max(0, top), behavior });
+      };
+
+      align(reduceMotion ? 'auto' : 'smooth');
+
+      let checks = 0;
+      const correctDrift = () => {
+        checks += 1;
+        const delta = block.getBoundingClientRect().top - 18;
+        if (Math.abs(delta) > 20) {
+          window.scrollTo({ top: Math.max(0, window.scrollY + delta), behavior: 'auto' });
+        }
+        if (checks < 6) setTimeout(correctDrift, 500);
+      };
+      setTimeout(correctDrift, 400);
+    }, 80);
   });
 }
 

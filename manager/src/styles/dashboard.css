@@ -299,6 +299,7 @@ h1 {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
+  min-width: 0;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 14px;
@@ -357,6 +358,7 @@ h1 {
 
 .tab-panel {
   display: none;
+  min-width: 0;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 14px;
@@ -365,7 +367,7 @@ h1 {
   gap: 14px;
 }
 
-.tab-panel.active { display: grid; }
+.tab-panel.active { display: grid; grid-template-columns: minmax(0, 1fr); }
 
 .panel-head {
   display: flex;
@@ -558,6 +560,59 @@ input:focus, select:focus {
 .table-wrap-analytics table,
 .table-wrap-history table { min-width: 1080px; }
 
+.history-picker {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.history-picker-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.history-picker-head h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--ink);
+}
+
+.history-picker-head .hint {
+  margin: 5px 0 0;
+}
+
+.history-search {
+  width: 100%;
+  padding: 11px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+}
+
+.history-search::placeholder { color: var(--ink-faint); }
+
+.history-search:focus {
+  outline: 2px solid var(--brand-accent);
+  outline-offset: 1px;
+}
+
+.history-picker-table { max-height: 52vh; }
+
+.history-picker-table table { min-width: 760px; }
+
+.history-picker-table td:last-child,
+.history-picker-table th:last-child {
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .history-picker-head { flex-direction: column; }
+}
+
 table {
   width: 100%;
   border-collapse: separate;
@@ -655,8 +710,16 @@ tbody tr:hover {
   padding: 14px;
   background: var(--surface-soft);
   display: grid;
+  min-width: 0;
   gap: 10px;
   border-left: 4px solid var(--line-strong);
+  scroll-margin-top: 18px;
+}
+
+.table-responsive {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .analytics-block.accent-ok    { border-left-color: var(--ok);     }

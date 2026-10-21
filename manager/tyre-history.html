@@ -78,11 +78,39 @@
         </div>
         <div class="toolbar">
           <button id="historyExportBtn" type="button" class="btn btn-secondary">Export CSV</button>
+          <a id="historyAllTyres" class="btn btn-secondary hidden" href="./tyre-history.html">All tyres</a>
           <a id="historyBackBtn" class="btn btn-secondary" href="./index.html#tyres">Back</a>
         </div>
       </div>
 
-      <div class="filters">
+      <section id="historyPicker" class="history-picker hidden" aria-labelledby="historyPickerTitle">
+        <div class="history-picker-head">
+          <div>
+            <h3 id="historyPickerTitle">Find a tyre</h3>
+            <p class="hint">Search by tyre number, truck or brand to open its full inspection and pressure history.</p>
+          </div>
+          <span class="chip" id="historyPickerCount">0 tyres</span>
+        </div>
+        <input id="historySearch" type="search" class="history-search" placeholder="Search tyre number, truck or brand" autocomplete="off" aria-label="Search tyres">
+        <div class="table-wrap history-picker-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Tyre Number</th>
+                <th>Truck</th>
+                <th>Brand</th>
+                <th>Status</th>
+                <th>Last Inspection</th>
+                <th>Open</th>
+              </tr>
+            </thead>
+            <tbody id="historyPickerBody"></tbody>
+          </table>
+        </div>
+        <p id="historyPickerEmpty" class="hint" hidden>No tyres match your search.</p>
+      </section>
+
+      <div class="filters" id="historyFilters">
         <input id="historyFrom" type="date">
         <input id="historyTo" type="date">
         <input id="historyTruck" type="text" placeholder="Truck">
@@ -97,7 +125,7 @@
         <button id="historyApplyFilter" type="button" class="btn">Apply</button>
       </div>
 
-      <div class="table-footer table-footer-top">
+      <div class="table-footer table-footer-top" id="historyTableFooter">
         <p id="historyPageMeta" class="hint">Showing 0 of 0 rows</p>
         <div class="table-pager">
           <label class="pager-label" for="historyPageSize">Rows</label>
@@ -112,7 +140,7 @@
         </div>
       </div>
 
-      <div class="table-wrap table-wrap-history">
+      <div class="table-wrap table-wrap-history" id="historyTableWrap">
         <table>
           <thead>
             <tr>

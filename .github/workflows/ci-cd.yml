@@ -1,0 +1,41 @@
+name: DynaHaul X v2 CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    name: CI checks (dashboard focus)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Check dashboard syntax
+        run: |
+          node --check server.js
+          node --check manager/src/services/data-service.js
+          node --check manager/src/pages/dashboard.js
+          node --check app-core.js
+      - name: Verify Vercel config
+        run: cat vercel.json
+
+  deploy:
+    name: Deploy to Vercel (DynaHaul X v2)
+    needs: ci
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'

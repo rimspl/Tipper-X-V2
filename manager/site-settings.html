@@ -176,6 +176,10 @@
             grid-column: 1 / -1;
         }
 
+        .settings-card[id] {
+            scroll-margin-top: 96px;
+        }
+
         .settings-card h3 {
             margin: 0 0 20px 0;
             color: #1e293b;
@@ -548,7 +552,7 @@
             </div>
 
             <!-- Fleet Configuration - Full Width -->
-            <div class="settings-card full-width">
+            <div class="settings-card full-width" id="pressure-settings">
                 <h3><span>🚛</span> Fleet Configuration</h3>
 
                 <div class="fleet-config">
@@ -768,6 +772,23 @@
         document.addEventListener('DOMContentLoaded', async () => {
             await loadAvailableModels();
             await loadSettings();
+
+            if (location.hash) {
+                const target = document.getElementById(location.hash.slice(1));
+                if (target) {
+                    setTimeout(() => {
+                        target.scrollIntoView({ block: 'start' });
+                        [350, 800, 1400].forEach((delay) => {
+                            setTimeout(() => {
+                                const delta = target.getBoundingClientRect().top - 96;
+                                if (Math.abs(delta) > 8) {
+                                    window.scrollBy({ top: delta, behavior: 'auto' });
+                                }
+                            }, delay);
+                        });
+                    }, 120);
+                }
+            }
         });
 
         async function loadAvailableModels() {

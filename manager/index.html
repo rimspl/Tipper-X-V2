@@ -3,12 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manager Control Room | DynaHaul X</title>
+  <title>Manager Dashboard | DynaHaul X</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./src/styles/dashboard.css">
   <link rel="stylesheet" href="./src/styles/onboarding.css">
+  <link rel="stylesheet" href="./src/styles/homepage-overview.css">
   <link rel="stylesheet" href="./src/styles/dashboard-mobile.css" media="screen and (max-width: 768px)">
   <link rel="stylesheet" href="./src/styles/dashboard-mobile.css" media="print">
   <script>
@@ -45,6 +46,24 @@
 </head>
 <body>
 
+  <svg class="fo-svg-sprite" aria-hidden="true" focusable="false">
+    <symbol id="fo-i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="fo-i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 6.3M20 4v7h-7"/></symbol>
+    <symbol id="fo-i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+    <symbol id="fo-i-alert" viewBox="0 0 24 24"><path d="M12 4 3 20h18L12 4Z"/><path d="M12 10v4M12 17h.01"/></symbol>
+    <symbol id="fo-i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="fo-i-tag" viewBox="0 0 24 24"><path d="M20 13.5 13.5 20 4 10.5V4h6.5L20 13.5Z"/><circle cx="8" cy="8" r="1.2"/></symbol>
+    <symbol id="fo-i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></symbol>
+    <symbol id="fo-i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+    <symbol id="fo-i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></symbol>
+    <symbol id="fo-i-chart" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol>
+    <symbol id="fo-i-savings" viewBox="0 0 24 24"><path d="M12 3v18M17 7.5C17 5.6 14.8 4 12 4S7 5.6 7 7.5 9.2 11 12 11s5 1.6 5 3.5S14.8 18 12 18s-5-1.6-5-3.5"/></symbol>
+    <symbol id="fo-i-tyre" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 4v5M12 15v5M4 12h5M15 12h5"/></symbol>
+    <symbol id="fo-i-clipboard" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2M8 10h8M8 14h8M8 18h5"/></symbol>
+    <symbol id="fo-i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0M16 5a3 3 0 0 1 0 6M17 20a5 5 0 0 0-2-4"/></symbol>
+    <symbol id="fo-i-logout" viewBox="0 0 24 24"><path d="M10 4H5v16h5M14 8l4 4-4 4M9 12h9"/></symbol>
+  </svg>
+
   <!-- Onboarding Container (hidden by default, shown when no data) -->
   <div id="onboardingContainer" style="display:none"></div>
 
@@ -63,42 +82,264 @@
     </div>
   </div>
 
-  <header class="manager-header">
-    <div class="brand-row">
-      <div>
-        <p class="eyebrow">Manager Operations Workspace</p>
-        <h1>DynaHaul X — Tipper Division</h1>
-      </div>
-      <div class="user-row">
-        <span id="userLabel" class="chip">Manager</span>
-        <button id="fuelUploadTopBtn" type="button" class="chip-link chip-button">Fuel Upload (Optional)</button>
-        <a id="siteSettingsTopLink" class="chip-link" href="site-settings.html">Site Settings</a>
-        <a id="userAccessTopLink" class="chip-link" href="user-management.html">User Access</a>
-        <a id="logoutBtn" class="chip-link" href="../fitter/login.html">Logout</a>
-      </div>
-    </div>
+  <div class="fo-sidebar-backdrop" id="foSidebarBackdrop" hidden></div>
 
-    <div class="kpi-grid" id="kpiGrid">
-      <div class="kpi-card" style="--kpi-accent: var(--ok)">
-        <span class="kpi-label">Target Tyre Life</span>
-        <strong id="targetTyreLife" class="kpi-value">0</strong>
-      </div>
-      <div class="kpi-card" style="--kpi-accent: var(--info)">
-        <span class="kpi-label">Target Fuel Efficiency</span>
-        <strong id="targetFuel" class="kpi-value">0</strong>
-      </div>
-      <div class="kpi-card" style="--kpi-accent: var(--ok)">
-        <span class="kpi-label">Target Annual Savings</span>
-        <strong id="targetSavings" class="kpi-value">0</strong>
-      </div>
-      <div id="pressureLeakageCard" class="kpi-card kpi-card-link" role="button" tabindex="0" aria-label="Open pressure leakage breakdown" style="--kpi-accent: var(--warn)">
-        <span class="kpi-label">Pressure Leakage Loss</span>
-        <strong id="pressureLeakage" class="kpi-value">0</strong>
-      </div>
-    </div>
-  </header>
+  <div class="fo-app-shell">
+    <aside class="fo-sidebar" id="foSidebar" aria-label="Primary navigation">
+      <a class="fo-side-brand" href="index.html" aria-label="DynaHaul X dashboard">
+        <span class="fo-side-mark" aria-hidden="true">DX</span>
+        <span class="fo-side-brand-text">
+          <strong>DYNAHAUL X</strong>
+          <small>Tipper Intelligence</small>
+        </span>
+      </a>
 
-  <main class="manager-shell">
+      <nav class="fo-side-nav">
+        <div class="fo-side-group">
+          <span class="fo-side-label">Command Center</span>
+          <a class="fo-nav-item is-active" href="index.html?view=dashboard" aria-current="page" data-fo-nav="dashboard">
+            <svg class="fo-icon"><use href="#fo-i-grid"/></svg><span>Dashboard</span>
+          </a>
+          <a class="fo-nav-item" href="index.html#analytics" data-fo-nav="reports">
+            <svg class="fo-icon"><use href="#fo-i-chart"/></svg><span>Reports</span>
+          </a>
+          <a class="fo-nav-item" href="index.html#savings" data-fo-nav="savings">
+            <svg class="fo-icon"><use href="#fo-i-savings"/></svg><span>Savings</span>
+          </a>
+        </div>
+
+        <div class="fo-side-group">
+          <span class="fo-side-label">Intelligence &amp; Analysis</span>
+          <a class="fo-nav-item" href="index.html?report=tyreLife#analytics" data-fo-report="tyreLife">
+            <svg class="fo-icon"><use href="#fo-i-clock"/></svg><span>Tyre Life</span>
+          </a>
+          <a class="fo-nav-item" href="index.html?report=rubberUtil#analytics" data-fo-report="rubberUtil">
+            <svg class="fo-icon"><use href="#fo-i-tyre"/></svg><span>Rubber Utilisation</span>
+          </a>
+          <a class="fo-nav-item" href="index.html?report=brandWise#analytics" data-fo-report="brandWise">
+            <svg class="fo-icon"><use href="#fo-i-tag"/></svg><span>Brand Performance</span>
+          </a>
+          <a class="fo-nav-item" href="index.html?report=pressureLeakage#analytics" data-fo-report="pressureLeakage">
+            <svg class="fo-icon"><use href="#fo-i-alert"/></svg><span>Pressure Health</span>
+          </a>
+        </div>
+
+        <div class="fo-side-group">
+          <span class="fo-side-label">Fleet &amp; Tyres</span>
+          <a class="fo-nav-item" href="index.html#tyres" data-fo-nav="tyres">
+            <svg class="fo-icon"><use href="#fo-i-tyre"/></svg><span>Tyre Records</span>
+          </a>
+          <a class="fo-nav-item" href="index.html#inspection" data-fo-nav="inspection">
+            <svg class="fo-icon"><use href="#fo-i-clipboard"/></svg><span>Inspections</span>
+          </a>
+          <a class="fo-nav-item" href="tyre-history.html">
+            <svg class="fo-icon"><use href="#fo-i-clock"/></svg><span>Tyre History</span>
+          </a>
+        </div>
+
+        <div class="fo-side-group">
+          <span class="fo-side-label">Administration</span>
+          <a class="fo-nav-item" href="site-settings.html">
+            <svg class="fo-icon"><use href="#fo-i-settings"/></svg><span>Site Settings</span>
+          </a>
+          <a class="fo-nav-item" href="user-management.html">
+            <svg class="fo-icon"><use href="#fo-i-users"/></svg><span>User Access</span>
+          </a>
+        </div>
+      </nav>
+
+      <div class="fo-side-foot">
+        <div class="fo-side-user">
+          <span class="fo-avatar" id="foSideAvatar" aria-hidden="true">M</span>
+          <span class="fo-side-user-meta">
+            <strong id="foSideUser">Manager</strong>
+            <small id="foSideSite">Loading site…</small>
+          </span>
+        </div>
+        <a class="fo-side-logout" id="logoutBtn" href="../fitter/login.html">
+          <svg class="fo-icon"><use href="#fo-i-logout"/></svg><span>Logout</span>
+        </a>
+      </div>
+    </aside>
+
+    <div class="fo-content">
+      <header class="manager-header">
+        <div class="brand-row">
+          <div class="fo-header-brand">
+            <button class="fo-menu-btn" id="foMenuBtn" type="button" aria-label="Open navigation" aria-controls="foSidebar" aria-expanded="false">
+              <svg class="fo-icon"><use href="#fo-i-menu"/></svg>
+            </button>
+            <div>
+              <p class="eyebrow">Manager Operations Workspace</p>
+              <h1>DynaHaul X — Tipper Division</h1>
+            </div>
+          </div>
+          <div class="user-row">
+            <span id="userLabel" class="chip">Manager</span>
+            <button id="fuelUploadTopBtn" type="button" class="chip-link chip-button">Fuel Upload (Optional)</button>
+          </div>
+        </div>
+      </header>
+
+      <main class="manager-shell">
+    <section class="fo" id="fleetOverview" aria-label="Fleet overview">
+      <section class="fo-insight" id="foInsight" aria-live="polite">
+        <div class="fo-insight-copy">
+          <div class="fo-kicker">
+            <span class="fo-dot" aria-hidden="true"></span>
+            Fleet Analyst
+            <span class="fo-chip fo-chip-stable" id="foInsightSeverity">Stable</span>
+          </div>
+          <h2 id="foInsightHeadline">Reading fleet insights…</h2>
+          <p id="foInsightCopy">Loading the latest site records.</p>
+        </div>
+        <a class="fo-btn" id="foInsightAction" href="#analytics">
+          View analytics
+          <svg class="fo-icon"><use href="#fo-i-arrow"/></svg>
+        </a>
+      </section>
+
+      <div class="fo-section-row">
+        <span class="fo-section-label">Fleet snapshot</span>
+        <span class="fo-section-meta" id="foSnapshotMeta">Loading live records…</span>
+        <button class="fo-refresh" id="foRefreshBtn" type="button">
+          <svg class="fo-icon"><use href="#fo-i-refresh"/></svg>
+          Refresh
+        </button>
+      </div>
+
+      <section class="fo-kpis" aria-label="Fleet snapshot">
+        <a class="fo-kpi" id="foHealthCard" href="?report=fleetHealth#analytics">
+          <div class="fo-kpi-top">
+            <span class="fo-kpi-label">Tyre health</span>
+            <span class="fo-chip" id="foHealthChip">—</span>
+          </div>
+          <div class="fo-health-body">
+            <div class="fo-gauge" id="foHealthGauge" role="img" aria-label="Tyre health score unavailable">
+              <span class="fo-gauge-value" id="foHealthValue">—</span>
+            </div>
+            <div class="fo-support" id="foHealthSupport">Health score appears once pressure and inspection records exist.</div>
+          </div>
+        </a>
+
+        <a class="fo-kpi" id="foActiveCard" href="#tyres">
+          <div class="fo-kpi-top">
+            <span class="fo-kpi-label">Active tyres</span>
+            <span class="fo-chip" id="foActiveChip">—</span>
+          </div>
+          <div class="fo-kpi-value"><span id="foActiveValue">—</span><span class="fo-kpi-total" id="foActiveTotal"></span></div>
+          <div class="fo-support" id="foActiveSupport">No tyre records captured for this site yet.</div>
+        </a>
+
+        <a class="fo-kpi" id="foLifeCard" href="?report=tyreLife#analytics">
+          <div class="fo-kpi-top">
+            <span class="fo-kpi-label">Life performance</span>
+            <span class="fo-chip" id="foLifeChip">—</span>
+          </div>
+          <div class="fo-kpi-value" id="foLifeValue">—</div>
+          <div class="fo-support" id="foLifeSupport">Appears after three completed runs against a site target.</div>
+        </a>
+
+        <a class="fo-kpi" id="foSavingsCard" href="#savings">
+          <div class="fo-kpi-top">
+            <span class="fo-kpi-label">Savings achieved</span>
+            <span class="fo-chip" id="foSavingsChip">—</span>
+          </div>
+          <div class="fo-kpi-value" id="foSavingsValue">—</div>
+          <div class="fo-support" id="foSavingsSupport">Verified value from completed runs that beat target life.</div>
+        </a>
+      </section>
+
+      <section class="fo-bento" aria-label="Fleet detail">
+        <article class="fo-card fo-card-scrap">
+          <div class="fo-card-head">
+            <span class="fo-card-title">Scrap trend</span>
+            <span class="fo-card-actions">
+              <span class="fo-card-chip">Last 12 months</span>
+              <a class="fo-card-link" id="foScrapView" href="?report=removalReasons#analytics">View <svg class="fo-icon"><use href="#fo-i-arrow"/></svg></a>
+            </span>
+          </div>
+          <div class="fo-chart-wrap">
+            <canvas id="foScrapChart" role="img" aria-label="Monthly scrapped tyres"></canvas>
+            <div class="fo-empty" id="foScrapEmpty" hidden>
+              <svg class="fo-empty-icon"><use href="#fo-i-clock"/></svg>
+              <strong>No removals recorded yet</strong>
+              <span>Tyre removals will appear here after the first completed run.</span>
+            </div>
+          </div>
+          <div class="fo-card-support" id="foScrapSupport">No removals recorded yet.</div>
+        </article>
+
+        <article class="fo-card fo-card-attention" id="foAttentionCard" tabindex="-1">
+          <div class="fo-card-head">
+            <span class="fo-card-title">Attention required</span>
+            <span class="fo-card-chip" id="foAttentionChip">—</span>
+          </div>
+          <div class="fo-attention-list" id="foAttentionList"></div>
+          <div class="fo-empty" id="foAttentionEmpty">
+            <svg class="fo-empty-icon"><use href="#fo-i-check"/></svg>
+            <strong>Reading exceptions…</strong>
+            <span>Attention items will appear after the latest records load.</span>
+          </div>
+        </article>
+
+        <article class="fo-card fo-card-brand">
+          <div class="fo-card-head">
+            <span class="fo-card-title">Brand performance</span>
+            <span class="fo-card-actions">
+              <span class="fo-card-chip">Avg life vs target</span>
+              <a class="fo-card-link" id="foBrandView" href="?report=brandWise#analytics">View <svg class="fo-icon"><use href="#fo-i-arrow"/></svg></a>
+            </span>
+          </div>
+          <div class="fo-brand-list" id="foBrandList"></div>
+          <div class="fo-empty" id="foBrandEmpty" hidden>
+            <svg class="fo-empty-icon"><use href="#fo-i-tag"/></svg>
+            <strong>No brand benchmarks yet</strong>
+            <span>Brand benchmarks appear after completed tyre runs.</span>
+          </div>
+          <div class="fo-card-support" id="foBrandSupport"></div>
+        </article>
+
+        <article class="fo-card fo-card-pressure" id="foPressureCard">
+          <div class="fo-card-head">
+            <span class="fo-card-title">Pressure health</span>
+            <span class="fo-card-chip" id="foPressureChip">—</span>
+          </div>
+          <div class="fo-pressure-body">
+            <div class="fo-pressure-score-line">
+              <span class="fo-pressure-score" id="foPressureValue">—</span>
+              <span class="fo-pressure-unit">compliance</span>
+            </div>
+            <div class="fo-pressure-bar"><span id="foPressureBar"></span></div>
+            <div class="fo-support" id="foPressureSupport">Pressure monitoring is not configured for this site.</div>
+          </div>
+          <div class="fo-card-foot">
+            <a class="fo-card-link" id="foPressureView" href="?report=pressureLeakage#analytics">View pressure analytics</a>
+            <a class="fo-card-link" id="foPressureSettings" href="site-settings.html#pressure-settings">
+              <svg class="fo-icon"><use href="#fo-i-settings"/></svg>
+              Pressure settings
+            </a>
+          </div>
+        </article>
+      </section>
+
+      <footer class="fo-foot">
+        <div class="fo-foot-item">
+          <span class="fo-foot-label">AI auto-fill</span>
+          <span id="foAiAccuracy">—</span>
+        </div>
+        <div class="fo-foot-item">
+          <span class="fo-foot-label">Data period</span>
+          <span id="foDataPeriod">—</span>
+        </div>
+        <div class="fo-foot-item">
+          <span class="fo-foot-label">Last refreshed</span>
+          <span id="foLastRefreshed">—</span>
+        </div>
+        <a class="fo-foot-link" href="#analytics">Open full analytics <svg class="fo-icon"><use href="#fo-i-arrow"/></svg></a>
+      </footer>
+    </section>
+
     <nav class="tab-nav" id="tabNav">
       <button data-tab="tyres" class="tab-btn active">Tyre Records <span class="tab-badge" id="tabBadgeTyres">0</span></button>
       <button data-tab="inspection" class="tab-btn">Inspection Records <span class="tab-badge" id="tabBadgeInspection">0</span></button>
@@ -114,51 +355,41 @@
         </div>
         <div class="toolbar">
           <button id="exportTyreXls" class="btn btn-secondary">Export Excel</button>
-          <button type="button" class="filter-toggle-btn" data-target="tyreFilters">⚙ Filters <span class="badge" id="tyreFilterBadge" style="display:none">0</span></button>
         </div>
       </div>
-      <div class="filters-collapsible" id="tyreFilters">
-        <div class="filters">
-          <input id="tyreNumberFilter" type="text" placeholder="Quick Search Tyre Number">
-          <select id="tyreBrandFilter">
-            <option value="">All Brands</option>
-          </select>
-          <input id="tyreTruckFilter" type="text" placeholder="Truck Number">
-          <select id="tyreStatusFilter">
-            <option value="">All Status</option>
-            <option value="Running">Running</option>
-            <option value="Spare">Spare</option>
-            <option value="Repair">Repair</option>
-            <option value="Scrap">Scrap</option>
-            <option value="Claim">Claim</option>
-            <option value="Retread">Retread</option>
-          </select>
-          <input id="tyreDateFrom" type="date">
-          <input id="tyreDateTo" type="date">
-          <button id="tyreApplyFilter" class="btn">Apply</button>
-        </div>
+      <div class="tyre-search-bar" style="display:flex;gap:8px;align-items:center;margin:8px 0 10px;max-width:520px">
+        <input id="tyreNumberFilter" type="text" placeholder="Search tyre number…" style="flex:1">
+        <button id="tyreApplyFilter" class="btn" type="button">Search</button>
+        <button id="tyreClearFilter" class="btn btn-secondary" type="button" title="Clear search">Clear</button>
       </div>
-      <div class="table-wrap table-wrap-tyres">
+      <div class="filters-collapsible" id="tyreFilters" style="display:none">
+        <input id="tyreBrandFilter" type="hidden">
+        <input id="tyreTruckFilter" type="hidden">
+        <select id="tyreStatusFilter" style="display:none"><option value=""></option></select>
+        <input id="tyreDateFrom" type="hidden">
+        <input id="tyreDateTo" type="hidden">
+      </div>
+      <div class="table-wrap table-wrap-tyres" style="max-height:62vh;overflow:auto;">
         <table>
           <thead>
             <tr>
+              <th style="width:80px">Sl</th>
               <th>Tyre Number</th>
-              <th>Brand</th>
-              <th>Size</th>
-              <th>Truck Number</th>
-              <th>Position</th>
-              <th>Status</th>
-              <th>Last Inspection</th>
-              <th>RTD1</th>
-              <th>RTD2</th>
-              <th>Odometer</th>
-              <th>Tyre Life</th>
-              <th>First Fitment</th>
-              <th>Actions</th>
+              <th style="width:160px">Actions</th>
             </tr>
           </thead>
           <tbody id="tyreTableBody"></tbody>
         </table>
+      </div>
+      <div class="table-footer" style="margin-top:8px">
+        <p id="tyrePageMeta" class="hint">Showing 0 of 0</p>
+        <div class="table-pager">
+          <label class="pager-label" for="tyrePageSize">Rows</label>
+          <select id="tyrePageSize" class="pager-select"><option value="25">25</option><option value="50" selected>50</option><option value="100">100</option></select>
+          <button id="tyrePrevPage" type="button" class="btn btn-secondary">Prev</button>
+          <span id="tyrePageInfo" class="hint">Page 1 / 1</span>
+          <button id="tyreNextPage" type="button" class="btn btn-secondary">Next</button>
+        </div>
       </div>
     </section>
 
@@ -754,7 +985,9 @@
       </div>
     </section>
 
-  </main>
+      </main>
+    </div>
+  </div>
 
   <div id="pressureLossModal" class="evidence-modal hidden" role="dialog" aria-modal="true" aria-labelledby="pressureLossTitle">
     <div class="evidence-modal-card">
@@ -842,6 +1075,48 @@
           <tbody id="evidenceTableBody"></tbody>
         </table>
       </div>
+    </div>
+  </div>
+
+  <div id="tyreCardModal" class="evidence-modal hidden" role="dialog" aria-modal="true" aria-labelledby="tyreCardTitle">
+    <div class="evidence-modal-card" style="width:min(1440px,96vw);max-height:92vh">
+      <div class="evidence-modal-head" style="flex-wrap:wrap">
+        <h3 id="tyreCardTitle">Tyre Card</h3>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button id="exportTyreCardXls" type="button" class="btn btn-secondary">Export Excel</button>
+          <button id="tyreCardClose" type="button" class="btn btn-secondary">Close</button>
+        </div>
+      </div>
+      <p id="tyreCardSub" class="hint">Loading tyre lifecycle…</p>
+      <div class="table-wrap" style="overflow:auto;max-height:62vh">
+        <table style="min-width:1280px">
+          <thead>
+            <tr>
+              <th>Sl</th>
+              <th>Tyre No</th>
+              <th>Brand</th>
+              <th>New/Old</th>
+              <th>D No</th>
+              <th>Position</th>
+              <th>Fitted Date</th>
+              <th>Fit Kmr</th>
+              <th>RTD 1</th>
+              <th>RTD 2</th>
+              <th>Avg</th>
+              <th>Removal Date</th>
+              <th>RTD 1</th>
+              <th>RTD 2</th>
+              <th>Avg</th>
+              <th>Wear %</th>
+              <th>Reason</th>
+              <th>Removed Kmr</th>
+              <th>Life (Kmr)</th>
+            </tr>
+          </thead>
+          <tbody id="tyreCardBody"></tbody>
+        </table>
+      </div>
+      <div class="table-footer"><span id="tyreCardTotal" class="hint"></span><span id="tyreCardStatus" class="hint"></span></div>
     </div>
   </div>
 
