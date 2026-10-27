@@ -2081,7 +2081,13 @@ function getTyreForecastRows() {
   getRunningTyrePerformanceRows().forEach((row) => {
     const remainingLife = Math.max(0, targetLife - row.actualLife);
     const forecastDate = new Date();
+    const maxForecastMonths = 12;
+    const maxForecastDate = new Date();
+    maxForecastDate.setMonth(maxForecastDate.getMonth() + maxForecastMonths);
     forecastDate.setDate(forecastDate.getDate() + Math.ceil(remainingLife / dailyKm));
+    if (forecastDate > maxForecastDate) {
+      forecastDate.setTime(maxForecastDate.getTime());
+    }
     const monthKey = toIsoDate(forecastDate).slice(0, 7);
     if (!map.has(monthKey)) {
       map.set(monthKey, { label: formatMonthLabel(monthKey), count: 0 });
